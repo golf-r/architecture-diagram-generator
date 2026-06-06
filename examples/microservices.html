@@ -1,322 +1,204 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Microservices Architecture</title>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" integrity="sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" integrity="sha384-en/ztfPSRkGfME4KIm05joYXynqzUgbsG5nMrj/xEFAHXkeZfO3yMK8QQ+mP7p1/" crossorigin="anonymous"></script>
+  <title>微服务架构图</title>
   <style>
+    :root {
+      --text-primary: oklch(0.18 0.015 260);
+      --text-muted: oklch(0.55 0.02 260);
+      --text-btn: oklch(0.45 0.02 260);
+      --border: oklch(0.9 0.008 260);
+      --btn-bg: oklch(0.98 0.004 260);
+      --btn-hover-bg: oklch(0.96 0.006 260);
+      --btn-hover-border: oklch(0.82 0.01 260);
+      --accent: oklch(0.55 0.2 250);
+      --selection: oklch(0.85 0.06 250 / 0.35);
+      --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.04);
+      --shadow-lg: 0 8px 24px oklch(0 0 0 / 0.06);
+      --font-stack: 'Microsoft YaHei', 'PingFang SC', -apple-system, sans-serif;
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'JetBrains Mono', monospace;
-      background: #020617;
-      min-height: 100vh;
-      padding: 2rem;
-      color: white;
-    }
-    .container { max-width: 1200px; margin: 0 auto; }
-    .header { margin-bottom: 2rem; }
-    .header-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; }
-    .pulse-dot {
-      width: 12px; height: 12px; background: #34d399;
-      border-radius: 50%; animation: pulse 2s infinite;
-    }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-    h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.025em; }
-    .subtitle { color: #94a3b8; font-size: 0.875rem; margin-left: 1.75rem; }
-    .diagram-container {
-      background: rgba(15, 23, 42, 0.5);
-      border-radius: 1rem; border: 1px solid #1e293b;
-      padding: 1.5rem; overflow-x: auto;
-    }
+    body { font-family: var(--font-stack); background: #ffffff; padding: 2.5rem; color: var(--text-primary); }
+    .container { max-width: 1100px; margin: 0 auto; background: #ffffff; border-radius: 14px; box-shadow: var(--shadow-sm), var(--shadow-lg); padding: 2rem 2rem 2rem 2rem; }
+    .header-row { display: flex; align-items: center; gap: 14px; margin-bottom: 2px; padding: 0 4px; }
+    .pulse-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); flex-shrink: 0; animation: pulse 2.4s ease-in-out infinite; }
+    @media (prefers-reduced-motion: reduce) { .pulse-dot { animation: none; } }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.85); } }
+    h1 { font-size: 18px; font-weight: 650; color: var(--text-primary); letter-spacing: -0.012em; }
+    .subtitle { color: var(--text-muted); font-size: 13px; margin: 2px 0 16px 24px; font-weight: 420; }
+    .diagram-container { background: #ffffff; border: 1px solid var(--border); border-radius: 10px; padding: 20px; overflow-x: auto; }
     svg { width: 100%; min-width: 900px; display: block; }
-    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 2rem; }
-    .card { background: rgba(15, 23, 42, 0.5); border-radius: 0.75rem; border: 1px solid #1e293b; padding: 1.25rem; }
-    .card-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
-    .card-dot { width: 8px; height: 8px; border-radius: 50%; }
-    .card-dot.cyan { background: #22d3ee; }
-    .card-dot.emerald { background: #34d399; }
-    .card-dot.rose { background: #fb7185; }
-    .card h3 { font-size: 0.875rem; font-weight: 600; }
-    .card ul { list-style: none; color: #94a3b8; font-size: 0.75rem; }
-    .card li { margin-bottom: 0.375rem; }
-    .footer { text-align: center; margin-top: 1.5rem; color: #475569; font-size: 0.75rem; }
-    .toolbar { display: flex; gap: 0.5rem; margin-left: auto; flex-shrink: 0; align-items: center; }
-    .toolbar-toggle {
-      background: transparent; border: none; color: #475569; cursor: pointer;
-      font-size: 1.25rem; line-height: 1; padding: 0.25rem 0.5rem;
-      border-radius: 0.375rem; transition: color 0.2s, background 0.2s;
-    }
-    .toolbar-toggle:hover { color: #94a3b8; background: rgba(30, 41, 59, 0.5); }
-    .toolbar-actions { display: none; gap: 0.5rem; }
-    .toolbar.expanded .toolbar-actions { display: flex; }
-    .toolbar-actions button {
-      background: rgba(30, 41, 59, 0.8); border: 1px solid #334155; color: #94a3b8;
-      padding: 0.375rem 0.75rem; border-radius: 0.375rem; font-family: inherit;
-      font-size: 0.75rem; cursor: pointer; transition: all 0.2s; white-space: nowrap;
-    }
-    .toolbar-actions button:hover { background: rgba(51, 65, 85, 0.8); color: white; border-color: #475569; }
-    @media print {
-      body { background: #020617; padding: 1rem; }
-      .toolbar { display: none !important; }
-    }
+    .toolbar { display: flex; gap: 4px; margin-left: auto; flex-shrink: 0; align-items: center; }
+    .toolbar-btn { background: var(--btn-bg); border: 1px solid var(--border); color: var(--text-btn); padding: 5px 12px; border-radius: 6px; font-family: inherit; font-size: 12px; cursor: pointer; transition: all 0.15s ease; white-space: nowrap; }
+    .toolbar-btn:hover { background: var(--btn-hover-bg); border-color: var(--btn-hover-border); color: var(--text-primary); }
+    .toolbar-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .toolbar-divider { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
+    @media print { .toolbar { display: none !important; } }
+    ::selection { background: var(--selection); }
   </style>
 </head>
 <body>
   <div class="container" id="report-container">
-    <div class="header">
-      <div class="header-row">
-        <div class="pulse-dot"></div>
-        <h1>Microservices Architecture</h1>
-        <div class="toolbar">
-          <div class="toolbar-actions">
-            <button onclick="copyAsImage(this)">📋 Copy</button>
-            <button onclick="downloadPNG(this)">🖼️ PNG</button>
-            <button onclick="downloadPDF(this)">📄 PDF</button>
-          </div>
-          <button class="toolbar-toggle" onclick="this.parentElement.classList.toggle('expanded')" title="Export options" aria-label="Export options">⋯</button>
-        </div>
+    <div class="header-row">
+      <div class="pulse-dot"></div>
+      <h1>微服务架构图</h1>
+      <div class="toolbar">
+        <button class="toolbar-btn" onclick="copyMermaid(this)">Mermaid</button>
+        <div class="toolbar-divider"></div>
+        <button class="toolbar-btn" onclick="copySVG(this)">复制 SVG</button>
+        <button class="toolbar-btn" onclick="downloadSVG(this)">下载 SVG</button>
       </div>
-      <p class="subtitle">Kubernetes-orchestrated services with API Gateway</p>
     </div>
+    <p class="subtitle">React Web · 移动端 · Kong API 网关 · 多语言微服务 · Kafka 事件流 · Kubernetes</p>
 
     <div class="diagram-container">
-      <svg viewBox="0 0 950 560">
+      <svg viewBox="0 0 1000 720" role="img" aria-label="微服务架构图">
         <defs>
-          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-            <polygon points="0 0, 10 3.5, 0 7" fill="#64748b" />
+          <marker id="a-gray" markerWidth="8" markerHeight="5.5" refX="7" refY="2.75" orient="auto">
+            <polygon points="0 0, 8 2.75, 0 5.5" fill="oklch(0.62 0.025 260)" />
           </marker>
-          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+          <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+            <path d="M 32 0 L 0 0 0 32" fill="none" stroke="oklch(0.96 0.006 250)" stroke-width="0.5"/>
           </pattern>
         </defs>
-
+        <rect width="100%" height="100%" fill="#ffffff" />
         <rect width="100%" height="100%" fill="url(#grid)" />
 
-        <!-- Kubernetes Cluster boundary -->
-        <rect x="280" y="30" width="640" height="460" rx="12" fill="rgba(34, 211, 238, 0.03)" stroke="#22d3ee" stroke-width="1" stroke-dasharray="8,4"/>
-        <text x="295" y="52" fill="#22d3ee" font-size="10" font-weight="600">Kubernetes Cluster</text>
+        <path d="M 230 115 L 230 193" fill="none" stroke="oklch(0.62 0.025 260)" stroke-width="1.3" marker-end="url(#a-gray)"/>
+        <rect x="204" y="145" width="52" height="16" rx="3" fill="oklch(1 0.005 250)" opacity="0.88" />
+        <text x="207" y="157" fill="oklch(0.55 0.025 260)" font-size="9" font-weight="500">HTTPS</text>
 
-        <!-- Arrows to Gateway -->
-        <line x1="120" y1="150" x2="188" y2="150" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <line x1="120" y1="380" x2="188" y2="380" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 770 115 L 770 193" fill="none" stroke="oklch(0.62 0.025 260)" stroke-width="1.3" marker-end="url(#a-gray)"/>
+        <rect x="744" y="145" width="52" height="16" rx="3" fill="oklch(1 0.005 250)" opacity="0.88" />
+        <text x="747" y="157" fill="oklch(0.55 0.025 260)" font-size="9" font-weight="500">HTTPS</text>
 
-        <!-- Gateway to services -->
-        <line x1="370" y1="180" x2="438" y2="100" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <line x1="370" y1="200" x2="438" y2="200" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <line x1="370" y1="220" x2="438" y2="300" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <line x1="370" y1="360" x2="438" y2="400" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 210 250 L 210 338" fill="none" stroke="oklch(0.62 0.025 260)" stroke-width="1.3" marker-end="url(#a-gray)"/>
+        <path d="M 500 250 L 500 338" fill="none" stroke="oklch(0.62 0.025 260)" stroke-width="1.3" marker-end="url(#a-gray)"/>
+        <path d="M 790 250 L 790 338" fill="none" stroke="oklch(0.62 0.025 260)" stroke-width="1.3" marker-end="url(#a-gray)"/>
 
-        <!-- Services to DBs -->
-        <line x1="560" y1="100" x2="698" y2="100" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <line x1="560" y1="200" x2="698" y2="200" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <line x1="560" y1="300" x2="698" y2="300" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <line x1="560" y1="400" x2="698" y2="400" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 180 395 L 180 463" fill="none" stroke="oklch(0.62 0.025 260)" stroke-width="1.3" marker-end="url(#a-gray)"/>
+        <rect x="156" y="421" width="48" height="16" rx="3" fill="oklch(1 0.005 250)" opacity="0.88" />
+        <text x="159" y="433" fill="oklch(0.55 0.025 260)" font-size="9" font-weight="500">SQL</text>
 
-        <!-- Message bus connections -->
-        <line x1="500" y1="130" x2="500" y2="138" stroke="#fb7185" stroke-width="1" stroke-dasharray="4,4"/>
-        <line x1="500" y1="162" x2="500" y2="170" stroke="#fb7185" stroke-width="1" stroke-dasharray="4,4"/>
-        <line x1="500" y1="230" x2="500" y2="238" stroke="#fb7185" stroke-width="1" stroke-dasharray="4,4"/>
-        <line x1="500" y1="262" x2="500" y2="270" stroke="#fb7185" stroke-width="1" stroke-dasharray="4,4"/>
-        <line x1="500" y1="330" x2="500" y2="338" stroke="#fb7185" stroke-width="1" stroke-dasharray="4,4"/>
-        <line x1="500" y1="362" x2="500" y2="370" stroke="#fb7185" stroke-width="1" stroke-dasharray="4,4"/>
+        <path d="M 470 395 L 470 463" fill="none" stroke="oklch(0.62 0.025 260)" stroke-width="1.3" marker-end="url(#a-gray)"/>
+        <rect x="446" y="421" width="48" height="16" rx="3" fill="oklch(1 0.005 250)" opacity="0.88" />
+        <text x="449" y="433" fill="oklch(0.55 0.025 260)" font-size="9" font-weight="500">SQL</text>
 
-        <!-- Web Client -->
-        <rect x="20" y="110" width="100" height="80" rx="6" fill="#0f172a"/>
-        <rect x="20" y="110" width="100" height="80" rx="6" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee" stroke-width="1.5"/>
-        <text x="70" y="145" fill="white" font-size="11" font-weight="600" text-anchor="middle">Web App</text>
-        <text x="70" y="165" fill="#94a3b8" font-size="9" text-anchor="middle">React SPA</text>
+        <path d="M 760 395 L 760 463" fill="none" stroke="oklch(0.62 0.025 260)" stroke-width="1.3" marker-end="url(#a-gray)"/>
+        <rect x="730" y="421" width="60" height="16" rx="3" fill="oklch(1 0.005 250)" opacity="0.88" />
+        <text x="733" y="433" fill="oklch(0.55 0.025 260)" font-size="9" font-weight="500">索引</text>
 
-        <!-- Mobile Client -->
-        <rect x="20" y="340" width="100" height="80" rx="6" fill="#0f172a"/>
-        <rect x="20" y="340" width="100" height="80" rx="6" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee" stroke-width="1.5"/>
-        <text x="70" y="375" fill="white" font-size="11" font-weight="600" text-anchor="middle">Mobile App</text>
-        <text x="70" y="395" fill="#94a3b8" font-size="9" text-anchor="middle">iOS/Android</text>
+        <path d="M 300 395 L 300 530 L 460 530 L 460 563" fill="none" stroke="oklch(0.62 0.025 260)" stroke-width="1.3" marker-end="url(#a-gray)"/>
+        <path d="M 590 395 L 590 530 L 540 530 L 540 563" fill="none" stroke="oklch(0.62 0.025 260)" stroke-width="1.3" marker-end="url(#a-gray)"/>
+        <path d="M 880 395 L 880 530 L 588 530 L 588 563" fill="none" stroke="oklch(0.62 0.025 260)" stroke-width="1.3" marker-end="url(#a-gray)"/>
+        <rect x="486" y="476" width="40" height="16" rx="3" fill="oklch(1 0.005 250)" opacity="0.88" />
+        <text x="489" y="488" fill="oklch(0.55 0.025 260)" font-size="9" font-weight="500">事件</text>
 
-        <!-- API Gateway -->
-        <rect x="190" y="140" width="180" height="120" rx="6" fill="#0f172a"/>
-        <rect x="190" y="140" width="180" height="120" rx="6" fill="rgba(136, 19, 55, 0.4)" stroke="#fb7185" stroke-width="1.5"/>
-        <text x="280" y="175" fill="white" font-size="12" font-weight="600" text-anchor="middle">API Gateway</text>
-        <text x="280" y="195" fill="#94a3b8" font-size="9" text-anchor="middle">Kong / Nginx</text>
-        <text x="280" y="210" fill="#94a3b8" font-size="9" text-anchor="middle">Rate Limiting</text>
-        <text x="280" y="225" fill="#94a3b8" font-size="9" text-anchor="middle">Auth / Routing</text>
-        <text x="280" y="250" fill="#fb7185" font-size="8" text-anchor="middle">:443</text>
+        <rect x="60" y="30" width="880" height="100" rx="7" fill="oklch(0.92 0.04 250 / 0.08)" stroke="oklch(0.55 0.2 250 / 0.3)" stroke-width="1.3" stroke-dasharray="5,3" />
+        <rect x="76" y="34" width="60" height="20" rx="4" fill="oklch(0.55 0.2 250)" />
+        <text x="106" y="48" fill="oklch(1 0.005 250)" font-size="10" font-weight="600" text-anchor="middle">客户端</text>
+        <rect x="140" y="60" width="180" height="55" rx="7" fill="oklch(0.92 0.04 250 / 0.12)" stroke="oklch(0.55 0.2 250)" stroke-width="1.3" />
+        <text x="230" y="83" fill="oklch(0.18 0.015 260)" font-size="13" font-weight="640" text-anchor="middle">React Web</text>
+        <text x="230" y="100" fill="oklch(0.55 0.02 260)" font-size="9" text-anchor="middle">管理后台 · 用户端</text>
+        <rect x="680" y="60" width="180" height="55" rx="7" fill="oklch(0.92 0.04 250 / 0.12)" stroke="oklch(0.55 0.2 250)" stroke-width="1.3" />
+        <text x="770" y="83" fill="oklch(0.18 0.015 260)" font-size="13" font-weight="640" text-anchor="middle">移动端 App</text>
+        <text x="770" y="100" fill="oklch(0.55 0.02 260)" font-size="9" text-anchor="middle">iOS · Android · Flutter</text>
 
-        <!-- Auth Gateway for mobile -->
-        <rect x="190" y="340" width="180" height="80" rx="6" fill="#0f172a"/>
-        <rect x="190" y="340" width="180" height="80" rx="6" fill="rgba(136, 19, 55, 0.4)" stroke="#fb7185" stroke-width="1.5"/>
-        <text x="280" y="375" fill="white" font-size="11" font-weight="600" text-anchor="middle">Auth Service</text>
-        <text x="280" y="395" fill="#94a3b8" font-size="9" text-anchor="middle">OAuth 2.0 / JWT</text>
+        <rect x="60" y="155" width="880" height="115" rx="7" fill="oklch(0.92 0.035 170 / 0.08)" stroke="oklch(0.55 0.17 170 / 0.3)" stroke-width="1.3" stroke-dasharray="5,3" />
+        <rect x="76" y="159" width="80" height="20" rx="4" fill="oklch(0.55 0.17 170)" />
+        <text x="116" y="173" fill="oklch(1 0.005 250)" font-size="10" font-weight="600" text-anchor="middle">API 网关</text>
+        <rect x="410" y="195" width="180" height="55" rx="7" fill="oklch(0.92 0.04 230 / 0.12)" stroke="oklch(0.55 0.18 230)" stroke-width="1.3" />
+        <text x="500" y="218" fill="oklch(0.18 0.015 260)" font-size="13" font-weight="640" text-anchor="middle">Kong API 网关</text>
+        <text x="500" y="235" fill="oklch(0.55 0.02 260)" font-size="9" text-anchor="middle">路由 · 限流 · 认证 · 日志</text>
 
-        <!-- User Service -->
-        <rect x="440" y="70" width="120" height="60" rx="6" fill="#0f172a"/>
-        <rect x="440" y="70" width="120" height="60" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1.5"/>
-        <text x="500" y="95" fill="white" font-size="10" font-weight="600" text-anchor="middle">User Service</text>
-        <text x="500" y="115" fill="#94a3b8" font-size="8" text-anchor="middle">Go :8081</text>
+        <rect x="60" y="295" width="880" height="115" rx="7" fill="oklch(0.92 0.035 170 / 0.08)" stroke="oklch(0.55 0.17 170 / 0.3)" stroke-width="1.3" stroke-dasharray="5,3" />
+        <rect x="76" y="299" width="60" height="20" rx="4" fill="oklch(0.55 0.17 170)" />
+        <text x="106" y="313" fill="oklch(1 0.005 250)" font-size="10" font-weight="600" text-anchor="middle">服务层</text>
+        <rect x="120" y="340" width="180" height="55" rx="7" fill="oklch(0.92 0.035 170 / 0.12)" stroke="oklch(0.55 0.17 170)" stroke-width="1.3" />
+        <text x="210" y="363" fill="oklch(0.18 0.015 260)" font-size="13" font-weight="640" text-anchor="middle">用户服务 (Go)</text>
+        <text x="210" y="380" fill="oklch(0.55 0.02 260)" font-size="9" text-anchor="middle">用户管理 · 权限</text>
+        <rect x="410" y="340" width="180" height="55" rx="7" fill="oklch(0.92 0.035 170 / 0.12)" stroke="oklch(0.55 0.17 170)" stroke-width="1.3" />
+        <text x="500" y="363" fill="oklch(0.18 0.015 260)" font-size="13" font-weight="640" text-anchor="middle">订单服务 (Java)</text>
+        <text x="500" y="380" fill="oklch(0.55 0.02 260)" font-size="9" text-anchor="middle">订单 · 支付</text>
+        <rect x="700" y="340" width="180" height="55" rx="7" fill="oklch(0.92 0.04 80 / 0.12)" stroke="oklch(0.55 0.18 80)" stroke-width="1.3" />
+        <text x="790" y="363" fill="oklch(0.18 0.015 260)" font-size="13" font-weight="640" text-anchor="middle">商品服务 (Python)</text>
+        <text x="790" y="380" fill="oklch(0.55 0.02 260)" font-size="9" text-anchor="middle">商品 · 搜索</text>
 
-        <!-- Order Service -->
-        <rect x="440" y="170" width="120" height="60" rx="6" fill="#0f172a"/>
-        <rect x="440" y="170" width="120" height="60" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1.5"/>
-        <text x="500" y="195" fill="white" font-size="10" font-weight="600" text-anchor="middle">Order Service</text>
-        <text x="500" y="215" fill="#94a3b8" font-size="8" text-anchor="middle">Java :8082</text>
+        <rect x="60" y="440" width="880" height="90" rx="7" fill="oklch(0.9 0.05 300 / 0.08)" stroke="oklch(0.5 0.2 300 / 0.3)" stroke-width="1.3" stroke-dasharray="5,3" />
+        <rect x="76" y="444" width="60" height="20" rx="4" fill="oklch(0.5 0.2 300)" />
+        <text x="106" y="458" fill="oklch(1 0.005 250)" font-size="10" font-weight="600" text-anchor="middle">数据库</text>
+        <rect x="90" y="465" width="180" height="55" rx="7" fill="oklch(0.9 0.05 300 / 0.12)" stroke="oklch(0.5 0.2 300)" stroke-width="1.3" />
+        <text x="180" y="488" fill="oklch(0.18 0.015 260)" font-size="13" font-weight="640" text-anchor="middle">PostgreSQL</text>
+        <text x="180" y="505" fill="oklch(0.55 0.02 260)" font-size="9" text-anchor="middle">用户数据</text>
+        <rect x="380" y="465" width="180" height="55" rx="7" fill="oklch(0.9 0.05 300 / 0.12)" stroke="oklch(0.5 0.2 300)" stroke-width="1.3" />
+        <text x="470" y="488" fill="oklch(0.18 0.015 260)" font-size="13" font-weight="640" text-anchor="middle">MongoDB</text>
+        <text x="470" y="505" fill="oklch(0.55 0.02 260)" font-size="9" text-anchor="middle">订单数据</text>
+        <rect x="670" y="465" width="180" height="55" rx="7" fill="oklch(0.9 0.05 300 / 0.12)" stroke="oklch(0.5 0.2 300)" stroke-width="1.3" />
+        <text x="760" y="488" fill="oklch(0.18 0.015 260)" font-size="13" font-weight="640" text-anchor="middle">Elasticsearch</text>
+        <text x="760" y="505" fill="oklch(0.55 0.02 260)" font-size="9" text-anchor="middle">商品索引 · 搜索</text>
 
-        <!-- Product Service -->
-        <rect x="440" y="270" width="120" height="60" rx="6" fill="#0f172a"/>
-        <rect x="440" y="270" width="120" height="60" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1.5"/>
-        <text x="500" y="295" fill="white" font-size="10" font-weight="600" text-anchor="middle">Product Service</text>
-        <text x="500" y="315" fill="#94a3b8" font-size="8" text-anchor="middle">Python :8083</text>
+        <rect x="60" y="555" width="880" height="80" rx="7" fill="oklch(0.92 0.04 80 / 0.08)" stroke="oklch(0.55 0.18 80 / 0.3)" stroke-width="1.3" stroke-dasharray="5,3" />
+        <rect x="76" y="559" width="80" height="20" rx="4" fill="oklch(0.55 0.18 80)" />
+        <text x="116" y="573" fill="oklch(1 0.005 250)" font-size="10" font-weight="600" text-anchor="middle">消息队列</text>
+        <rect x="410" y="565" width="180" height="55" rx="7" fill="oklch(0.92 0.04 80 / 0.12)" stroke="oklch(0.55 0.18 80)" stroke-width="1.3" />
+        <text x="500" y="588" fill="oklch(0.18 0.015 260)" font-size="13" font-weight="640" text-anchor="middle">Kafka</text>
+        <text x="500" y="605" fill="oklch(0.55 0.02 260)" font-size="9" text-anchor="middle">事件流 · 异步通信</text>
 
-        <!-- Notification Service -->
-        <rect x="440" y="370" width="120" height="60" rx="6" fill="#0f172a"/>
-        <rect x="440" y="370" width="120" height="60" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1.5"/>
-        <text x="500" y="395" fill="white" font-size="10" font-weight="600" text-anchor="middle">Notification Svc</text>
-        <text x="500" y="415" fill="#94a3b8" font-size="8" text-anchor="middle">Node.js :8084</text>
-
-        <!-- Message Bus -->
-        <rect x="440" y="140" width="120" height="20" rx="4" fill="rgba(251, 146, 60, 0.3)" stroke="#fb923c" stroke-width="1"/>
-        <text x="500" y="154" fill="#fb923c" font-size="7" text-anchor="middle">Kafka / RabbitMQ</text>
-
-        <rect x="440" y="240" width="120" height="20" rx="4" fill="rgba(251, 146, 60, 0.3)" stroke="#fb923c" stroke-width="1"/>
-        <text x="500" y="254" fill="#fb923c" font-size="7" text-anchor="middle">Event Bus</text>
-
-        <rect x="440" y="340" width="120" height="20" rx="4" fill="rgba(251, 146, 60, 0.3)" stroke="#fb923c" stroke-width="1"/>
-        <text x="500" y="354" fill="#fb923c" font-size="7" text-anchor="middle">Event Bus</text>
-
-        <!-- PostgreSQL -->
-        <rect x="700" y="70" width="100" height="60" rx="6" fill="#0f172a"/>
-        <rect x="700" y="70" width="100" height="60" rx="6" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1.5"/>
-        <text x="750" y="95" fill="white" font-size="10" font-weight="600" text-anchor="middle">PostgreSQL</text>
-        <text x="750" y="115" fill="#94a3b8" font-size="8" text-anchor="middle">Users DB</text>
-
-        <!-- MongoDB -->
-        <rect x="700" y="170" width="100" height="60" rx="6" fill="#0f172a"/>
-        <rect x="700" y="170" width="100" height="60" rx="6" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1.5"/>
-        <text x="750" y="195" fill="white" font-size="10" font-weight="600" text-anchor="middle">MongoDB</text>
-        <text x="750" y="215" fill="#94a3b8" font-size="8" text-anchor="middle">Orders DB</text>
-
-        <!-- Elasticsearch -->
-        <rect x="700" y="270" width="100" height="60" rx="6" fill="#0f172a"/>
-        <rect x="700" y="270" width="100" height="60" rx="6" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1.5"/>
-        <text x="750" y="295" fill="white" font-size="10" font-weight="600" text-anchor="middle">Elasticsearch</text>
-        <text x="750" y="315" fill="#94a3b8" font-size="8" text-anchor="middle">Products</text>
-
-        <!-- Redis -->
-        <rect x="700" y="370" width="100" height="60" rx="6" fill="#0f172a"/>
-        <rect x="700" y="370" width="100" height="60" rx="6" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1.5"/>
-        <text x="750" y="395" fill="white" font-size="10" font-weight="600" text-anchor="middle">Redis</text>
-        <text x="750" y="415" fill="#94a3b8" font-size="8" text-anchor="middle">Cache / Queue</text>
-
-        <!-- Legend (placed below all boundaries) -->
-        <text x="300" y="510" fill="white" font-size="10" font-weight="600">Legend</text>
-        <rect x="300" y="522" width="16" height="10" rx="2" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1"/>
-        <text x="322" y="530" fill="#94a3b8" font-size="8">Service</text>
-        <rect x="380" y="522" width="16" height="10" rx="2" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1"/>
-        <text x="402" y="530" fill="#94a3b8" font-size="8">Database</text>
-        <rect x="470" y="522" width="16" height="10" rx="2" fill="rgba(136, 19, 55, 0.4)" stroke="#fb7185" stroke-width="1"/>
-        <text x="492" y="530" fill="#94a3b8" font-size="8">Gateway</text>
-        <rect x="560" y="522" width="16" height="10" rx="2" fill="rgba(251, 146, 60, 0.3)" stroke="#fb923c" stroke-width="1"/>
-        <text x="582" y="530" fill="#94a3b8" font-size="8">Message Bus</text>
+        <rect x="60" y="660" width="16" height="10" rx="2" fill="oklch(0.92 0.04 250 / 0.12)" stroke="oklch(0.55 0.2 250)" stroke-width="1" />
+        <text x="82" y="669" fill="oklch(0.55 0.02 260)" font-size="9">前端</text>
+        <rect x="130" y="660" width="16" height="10" rx="2" fill="oklch(0.92 0.035 170 / 0.12)" stroke="oklch(0.55 0.17 170)" stroke-width="1" />
+        <text x="152" y="669" fill="oklch(0.55 0.02 260)" font-size="9">后端</text>
+        <rect x="200" y="660" width="16" height="10" rx="2" fill="oklch(0.9 0.05 300 / 0.12)" stroke="oklch(0.5 0.2 300)" stroke-width="1" />
+        <text x="222" y="669" fill="oklch(0.55 0.02 260)" font-size="9">数据库</text>
+        <rect x="280" y="660" width="16" height="10" rx="2" fill="oklch(0.92 0.04 80 / 0.12)" stroke="oklch(0.55 0.18 80)" stroke-width="1" />
+        <text x="302" y="669" fill="oklch(0.55 0.02 260)" font-size="9">消息</text>
       </svg>
-    </div>
 
-    <div class="cards">
-      <div class="card">
-        <div class="card-header">
-          <div class="card-dot cyan"></div>
-          <h3>Client Applications</h3>
-        </div>
-        <ul>
-          <li>• React SPA (Web)</li>
-          <li>• Native iOS/Android</li>
-          <li>• Unified API interface</li>
-          <li>• JWT authentication</li>
-        </ul>
-      </div>
-      <div class="card">
-        <div class="card-header">
-          <div class="card-dot emerald"></div>
-          <h3>Microservices</h3>
-        </div>
-        <ul>
-          <li>• Polyglot (Go, Java, Python, Node)</li>
-          <li>• Independent deployments</li>
-          <li>• Event-driven communication</li>
-          <li>• Database per service</li>
-        </ul>
-      </div>
-      <div class="card">
-        <div class="card-header">
-          <div class="card-dot rose"></div>
-          <h3>Infrastructure</h3>
-        </div>
-        <ul>
-          <li>• Kubernetes orchestration</li>
-          <li>• Kong API Gateway</li>
-          <li>• Kafka event streaming</li>
-          <li>• Prometheus monitoring</li>
-        </ul>
-      </div>
+      <pre style="display:none" class="mermaid-src">%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#e8f4f8', 'primaryBorderColor': '#2b95c2', 'lineColor': '#94a3b8', 'fontFamily': 'Microsoft YaHei'}}}%%
+flowchart TD
+  subgraph 客户端
+    direction LR
+    WEB([React Web<br/>管理后台])
+    APP([移动端 App<br/>iOS · Android])
+  end
+  subgraph API网关
+    K[Kong API 网关<br/>路由 · 限流 · 认证]
+  end
+  subgraph 服务层
+    direction LR
+    US[用户服务<br/>Go]
+    OS[订单服务<br/>Java]
+    PS[商品服务<br/>Python]
+  end
+  subgraph 数据库
+    direction LR
+    PG[(PostgreSQL<br/>用户)]
+    MO[(MongoDB<br/>订单)]
+    ES[(Elasticsearch<br/>商品)]
+  end
+  subgraph 消息队列
+    KF[Kafka<br/>事件流]
+  end
+  WEB -- HTTPS --> K
+  APP -- HTTPS --> K
+  K --> US
+  K --> OS
+  K --> PS
+  US -- SQL --> PG
+  OS -- SQL --> MO
+  PS -- 索引 --> ES
+  US --> KF
+  OS --> KF
+  PS --> KF</pre>
     </div>
-
-    <p class="footer">Microservices Architecture • Domain-driven design</p>
   </div>
-
   <script>
-    async function copyAsImage(btn) {
-      const orig = btn.textContent;
-      try {
-        const el = document.getElementById('report-container');
-        const r = el.getBoundingClientRect();
-        const pad = 32;
-        const canvas = await html2canvas(document.body, { backgroundColor: '#020617', scale: 2, useCORS: true, ignoreElements: (e) => e.classList && e.classList.contains('toolbar'), x: r.left + window.scrollX - pad, y: r.top + window.scrollY - pad, width: r.width + pad * 2, height: r.height + pad * 2 });
-        const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
-        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-        btn.textContent = '✓ Copied!';
-      } catch (e) {
-        btn.textContent = '✗ Failed';
-      }
-      setTimeout(() => btn.textContent = orig, 2000);
-    }
-    async function downloadPNG(btn) {
-      const orig = btn.textContent;
-      btn.textContent = '⏳ ...';
-      try {
-        const el = document.getElementById('report-container');
-        const r = el.getBoundingClientRect();
-        const pad = 32;
-        const canvas = await html2canvas(document.body, { backgroundColor: '#020617', scale: 2, useCORS: true, ignoreElements: (e) => e.classList && e.classList.contains('toolbar'), x: r.left + window.scrollX - pad, y: r.top + window.scrollY - pad, width: r.width + pad * 2, height: r.height + pad * 2 });
-        const link = document.createElement('a');
-        link.download = 'microservices.png';
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-        btn.textContent = '✓ Done!';
-      } catch (e) {
-        btn.textContent = '✗ Failed';
-      }
-      setTimeout(() => btn.textContent = orig, 2000);
-    }
-    async function downloadPDF(btn) {
-      const orig = btn.textContent;
-      btn.textContent = '⏳ ...';
-      try {
-        const el = document.getElementById('report-container');
-        const r = el.getBoundingClientRect();
-        const pad = 32;
-        const canvas = await html2canvas(document.body, { backgroundColor: '#020617', scale: 2, useCORS: true, ignoreElements: (e) => e.classList && e.classList.contains('toolbar'), x: r.left + window.scrollX - pad, y: r.top + window.scrollY - pad, width: r.width + pad * 2, height: r.height + pad * 2 });
-        const imgData = canvas.toDataURL('image/png');
-        const { jsPDF } = window.jspdf;
-        const orientation = canvas.width > canvas.height ? 'landscape' : 'portrait';
-        const pdf = new jsPDF({ orientation, unit: 'px', format: [canvas.width, canvas.height], hotfixes: ['px_scaling'] });
-        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-        pdf.save('microservices.pdf');
-        btn.textContent = '✓ Done!';
-      } catch (e) {
-        btn.textContent = '✗ Failed';
-      }
-      setTimeout(() => btn.textContent = orig, 2000);
-    }
+    function serializeSvg() { const svg = document.querySelector('svg'); const clone = svg.cloneNode(true); clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg'); clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink'); return '<?xml version="1.0" encoding="UTF-8"?>\n' + new XMLSerializer().serializeToString(clone); }
+    async function copySVG(btn) { const orig = btn.textContent; try { await navigator.clipboard.writeText(serializeSvg()); btn.textContent = '✓ 已复制'; } catch (e) { btn.textContent = '✗ 失败'; } setTimeout(function() { btn.textContent = orig; }, 2000); }
+    function downloadSVG(btn) { const orig = btn.textContent; try { const blob = new Blob([serializeSvg()], { type: 'image/svg+xml;charset=utf-8' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = 'microservices.svg'; link.click(); URL.revokeObjectURL(url); btn.textContent = '✓ 完成'; } catch (e) { btn.textContent = '✗ 失败'; } setTimeout(function() { btn.textContent = orig; }, 2000); }
+    async function copyMermaid(btn) { const orig = btn.textContent; const pre = document.querySelector('.mermaid-src'); if (!pre) { btn.textContent = '✗ 失败'; setTimeout(function() { btn.textContent = orig; }, 2000); return; } try { await navigator.clipboard.writeText(pre.textContent); btn.textContent = '✓ 已复制'; } catch (e) { btn.textContent = '✗ 失败'; } setTimeout(function() { btn.textContent = orig; }, 2000); }
   </script>
 </body>
 </html>

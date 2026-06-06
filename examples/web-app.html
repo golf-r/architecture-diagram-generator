@@ -1,248 +1,159 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Web Application Architecture</title>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" integrity="sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" integrity="sha384-en/ztfPSRkGfME4KIm05joYXynqzUgbsG5nMrj/xEFAHXkeZfO3yMK8QQ+mP7p1/" crossorigin="anonymous"></script>
+  <title>Web 应用架构图</title>
   <style>
+    :root {
+      --text-primary: oklch(0.18 0.015 260);
+      --text-muted: oklch(0.55 0.02 260);
+      --text-btn: oklch(0.45 0.02 260);
+      --border: oklch(0.9 0.008 260);
+      --btn-bg: oklch(0.98 0.004 260);
+      --btn-hover-bg: oklch(0.96 0.006 260);
+      --btn-hover-border: oklch(0.82 0.01 260);
+      --accent: oklch(0.55 0.2 250);
+      --selection: oklch(0.85 0.06 250 / 0.35);
+      --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.04);
+      --shadow-lg: 0 8px 24px oklch(0 0 0 / 0.06);
+      --font-stack: 'Microsoft YaHei', 'PingFang SC', -apple-system, sans-serif;
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'JetBrains Mono', monospace;
-      background: #020617;
-      min-height: 100vh;
-      padding: 2rem;
-      color: white;
-    }
-    .container { max-width: 1200px; margin: 0 auto; }
-    .header { margin-bottom: 2rem; }
-    .header-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; }
-    .pulse-dot {
-      width: 12px; height: 12px; background: #22d3ee;
-      border-radius: 50%; animation: pulse 2s infinite;
-    }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-    h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.025em; }
-    .subtitle { color: #94a3b8; font-size: 0.875rem; margin-left: 1.75rem; }
-    .diagram-container {
-      background: rgba(15, 23, 42, 0.5);
-      border-radius: 1rem; border: 1px solid #1e293b;
-      padding: 1.5rem; overflow-x: auto;
-    }
-    svg { width: 100%; min-width: 800px; display: block; }
-    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 2rem; }
-    .card { background: rgba(15, 23, 42, 0.5); border-radius: 0.75rem; border: 1px solid #1e293b; padding: 1.25rem; }
-    .card-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
-    .card-dot { width: 8px; height: 8px; border-radius: 50%; }
-    .card-dot.cyan { background: #22d3ee; }
-    .card-dot.emerald { background: #34d399; }
-    .card-dot.violet { background: #a78bfa; }
-    .card h3 { font-size: 0.875rem; font-weight: 600; }
-    .card ul { list-style: none; color: #94a3b8; font-size: 0.75rem; }
-    .card li { margin-bottom: 0.375rem; }
-    .footer { text-align: center; margin-top: 1.5rem; color: #475569; font-size: 0.75rem; }
-    .toolbar { display: flex; gap: 0.5rem; margin-left: auto; flex-shrink: 0; align-items: center; }
-    .toolbar-toggle {
-      background: transparent; border: none; color: #475569; cursor: pointer;
-      font-size: 1.25rem; line-height: 1; padding: 0.25rem 0.5rem;
-      border-radius: 0.375rem; transition: color 0.2s, background 0.2s;
-    }
-    .toolbar-toggle:hover { color: #94a3b8; background: rgba(30, 41, 59, 0.5); }
-    .toolbar-actions { display: none; gap: 0.5rem; }
-    .toolbar.expanded .toolbar-actions { display: flex; }
-    .toolbar-actions button {
-      background: rgba(30, 41, 59, 0.8); border: 1px solid #334155; color: #94a3b8;
-      padding: 0.375rem 0.75rem; border-radius: 0.375rem; font-family: inherit;
-      font-size: 0.75rem; cursor: pointer; transition: all 0.2s; white-space: nowrap;
-    }
-    .toolbar-actions button:hover { background: rgba(51, 65, 85, 0.8); color: white; border-color: #475569; }
-    @media print {
-      body { background: #020617; padding: 1rem; }
-      .toolbar { display: none !important; }
-    }
+    body { font-family: var(--font-stack); background: #ffffff; padding: 2.5rem; color: var(--text-primary); }
+    .container { max-width: 1100px; margin: 0 auto; background: #ffffff; border-radius: 14px; box-shadow: var(--shadow-sm), var(--shadow-lg); padding: 2rem 2rem 2rem 2rem; }
+    .header-row { display: flex; align-items: center; gap: 14px; margin-bottom: 2px; padding: 0 4px; }
+    .pulse-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); flex-shrink: 0; animation: pulse 2.4s ease-in-out infinite; }
+    @media (prefers-reduced-motion: reduce) { .pulse-dot { animation: none; } }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.85); } }
+    h1 { font-size: 18px; font-weight: 650; color: var(--text-primary); letter-spacing: -0.012em; }
+    .subtitle { color: var(--text-muted); font-size: 13px; margin: 2px 0 16px 24px; font-weight: 420; }
+    .diagram-container { background: #ffffff; border: 1px solid var(--border); border-radius: 10px; padding: 20px; overflow-x: auto; }
+    svg { width: 100%; min-width: 900px; display: block; }
+    .toolbar { display: flex; gap: 4px; margin-left: auto; flex-shrink: 0; align-items: center; }
+    .toolbar-btn { background: var(--btn-bg); border: 1px solid var(--border); color: var(--text-btn); padding: 5px 12px; border-radius: 6px; font-family: inherit; font-size: 12px; cursor: pointer; transition: all 0.15s ease; white-space: nowrap; }
+    .toolbar-btn:hover { background: var(--btn-hover-bg); border-color: var(--btn-hover-border); color: var(--text-primary); }
+    .toolbar-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .toolbar-divider { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
+    @media print { .toolbar { display: none !important; } }
+    ::selection { background: var(--selection); }
   </style>
 </head>
 <body>
   <div class="container" id="report-container">
-    <div class="header">
-      <div class="header-row">
-        <div class="pulse-dot"></div>
-        <h1>Web Application Architecture</h1>
-        <div class="toolbar">
-          <div class="toolbar-actions">
-            <button onclick="copyAsImage(this)">📋 Copy</button>
-            <button onclick="downloadPNG(this)">🖼️ PNG</button>
-            <button onclick="downloadPDF(this)">📄 PDF</button>
-          </div>
-          <button class="toolbar-toggle" onclick="this.parentElement.classList.toggle('expanded')" title="Export options" aria-label="Export options">⋯</button>
-        </div>
+    <div class="header-row">
+      <div class="pulse-dot"></div>
+      <h1>Web 应用架构图</h1>
+      <div class="toolbar">
+        <button class="toolbar-btn" onclick="copyMermaid(this)">Mermaid</button>
+        <div class="toolbar-divider"></div>
+        <button class="toolbar-btn" onclick="copySVG(this)">复制 SVG</button>
+        <button class="toolbar-btn" onclick="downloadSVG(this)">下载 SVG</button>
       </div>
-      <p class="subtitle">React + Node.js + PostgreSQL stack</p>
     </div>
+    <p class="subtitle">React 前端 · Node.js API · PostgreSQL · Redis 缓存 · JWT 认证 · AWS 部署</p>
 
     <div class="diagram-container">
-      <svg viewBox="0 0 900 400">
+      <svg viewBox="0 0 1000 600" role="img" aria-label="Web 应用架构图">
         <defs>
-          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-            <polygon points="0 0, 10 3.5, 0 7" fill="#64748b" />
+          <marker id="a-gray" markerWidth="8" markerHeight="5.5" refX="7" refY="2.75" orient="auto">
+            <polygon points="0 0, 8 2.75, 0 5.5" fill="oklch(0.62 0.025 260)" />
           </marker>
-          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+          <marker id="a-rose" markerWidth="8" markerHeight="5.5" refX="7" refY="2.75" orient="auto">
+            <polygon points="0 0, 8 2.75, 0 5.5" fill="oklch(0.55 0.22 20)" />
+          </marker>
+          <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+            <path d="M 32 0 L 0 0 0 32" fill="none" stroke="oklch(0.96 0.006 250)" stroke-width="0.5"/>
           </pattern>
         </defs>
-
+        <rect width="100%" height="100%" fill="#ffffff" />
         <rect width="100%" height="100%" fill="url(#grid)" />
 
-        <!-- Arrows (drawn first for z-order) -->
-        <line x1="130" y1="200" x2="248" y2="200" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <text x="189" y="190" fill="#94a3b8" font-size="8" text-anchor="middle">HTTPS</text>
+        <path d="M 500 115 L 500 178" fill="none" stroke="oklch(0.62 0.025 260)" stroke-width="1.3" marker-end="url(#a-gray)"/>
+        <rect x="478" y="138" width="44" height="16" rx="3" fill="oklch(1 0.005 250)" opacity="0.88" />
+        <text x="481" y="150" fill="oklch(0.55 0.025 260)" font-size="9" font-weight="500">HTTPS</text>
 
-        <line x1="400" y1="200" x2="498" y2="200" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <text x="449" y="190" fill="#94a3b8" font-size="8" text-anchor="middle">REST API</text>
+        <path d="M 500 235 L 500 270 L 400 270 L 400 313" fill="none" stroke="oklch(0.62 0.025 260)" stroke-width="1.3" marker-end="url(#a-gray)"/>
+        <rect x="442" y="253" width="44" height="16" rx="3" fill="oklch(1 0.005 250)" opacity="0.88" />
+        <text x="445" y="265" fill="oklch(0.55 0.025 260)" font-size="9" font-weight="500">SQL</text>
 
-        <line x1="650" y1="200" x2="748" y2="200" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <text x="699" y="190" fill="#94a3b8" font-size="8" text-anchor="middle">SQL</text>
+        <path d="M 500 235 L 500 270 L 600 270 L 600 313" fill="none" stroke="oklch(0.62 0.025 260)" stroke-width="1.3" marker-end="url(#a-gray)"/>
+        <rect x="544" y="253" width="44" height="16" rx="3" fill="oklch(1 0.005 250)" opacity="0.88" />
+        <text x="547" y="265" fill="oklch(0.55 0.025 260)" font-size="9" font-weight="500">Redis</text>
 
-        <!-- Users -->
-        <rect x="30" y="160" width="100" height="80" rx="6" fill="#0f172a"/>
-        <rect x="30" y="160" width="100" height="80" rx="6" fill="rgba(30, 41, 59, 0.5)" stroke="#94a3b8" stroke-width="1.5"/>
-        <text x="80" y="195" fill="white" font-size="12" font-weight="600" text-anchor="middle">Users</text>
-        <text x="80" y="215" fill="#94a3b8" font-size="9" text-anchor="middle">Browser</text>
+        <path d="M 750 207 L 800 207 L 800 87 L 580 87" fill="none" stroke="oklch(0.55 0.22 20)" stroke-width="1.3" stroke-dasharray="5,3" marker-end="url(#a-rose)"/>
+        <rect x="682" y="105" width="58" height="16" rx="3" fill="oklch(1 0.005 250)" opacity="0.88" />
+        <text x="685" y="117" fill="oklch(0.55 0.025 260)" font-size="9" font-weight="500">JWT + PKCE</text>
 
-        <!-- Frontend -->
-        <rect x="250" y="140" width="150" height="120" rx="6" fill="#0f172a"/>
-        <rect x="250" y="140" width="150" height="120" rx="6" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee" stroke-width="1.5"/>
-        <text x="325" y="175" fill="white" font-size="12" font-weight="600" text-anchor="middle">Frontend</text>
-        <text x="325" y="195" fill="#94a3b8" font-size="9" text-anchor="middle">React</text>
-        <text x="325" y="210" fill="#94a3b8" font-size="9" text-anchor="middle">TypeScript</text>
-        <text x="325" y="225" fill="#94a3b8" font-size="9" text-anchor="middle">Tailwind CSS</text>
-        <text x="325" y="248" fill="#22d3ee" font-size="8" text-anchor="middle">:3000</text>
+        <rect x="60" y="30" width="880" height="100" rx="7" fill="oklch(0.92 0.04 250 / 0.08)" stroke="oklch(0.55 0.2 250 / 0.3)" stroke-width="1.3" stroke-dasharray="5,3" />
+        <rect x="76" y="34" width="60" height="20" rx="4" fill="oklch(0.55 0.2 250)" />
+        <text x="106" y="48" fill="oklch(1 0.005 250)" font-size="10" font-weight="600" text-anchor="middle">前端层</text>
 
-        <!-- Backend -->
-        <rect x="500" y="140" width="150" height="120" rx="6" fill="#0f172a"/>
-        <rect x="500" y="140" width="150" height="120" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1.5"/>
-        <text x="575" y="175" fill="white" font-size="12" font-weight="600" text-anchor="middle">Backend</text>
-        <text x="575" y="195" fill="#94a3b8" font-size="9" text-anchor="middle">Node.js</text>
-        <text x="575" y="210" fill="#94a3b8" font-size="9" text-anchor="middle">Express</text>
-        <text x="575" y="225" fill="#94a3b8" font-size="9" text-anchor="middle">REST API</text>
-        <text x="575" y="248" fill="#34d399" font-size="8" text-anchor="middle">:8080</text>
+        <rect x="420" y="60" width="160" height="55" rx="7" fill="oklch(0.92 0.04 250 / 0.12)" stroke="oklch(0.55 0.2 250)" stroke-width="1.3" />
+        <text x="500" y="83" fill="oklch(0.18 0.015 260)" font-size="13" font-weight="640" text-anchor="middle">React 前端</text>
+        <text x="500" y="100" fill="oklch(0.55 0.02 260)" font-size="9" text-anchor="middle">SPA · TypeScript · Tailwind</text>
 
-        <!-- Database -->
-        <rect x="750" y="150" width="120" height="100" rx="6" fill="#0f172a"/>
-        <rect x="750" y="150" width="120" height="100" rx="6" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1.5"/>
-        <text x="810" y="190" fill="white" font-size="12" font-weight="600" text-anchor="middle">PostgreSQL</text>
-        <text x="810" y="210" fill="#94a3b8" font-size="9" text-anchor="middle">Database</text>
-        <text x="810" y="238" fill="#a78bfa" font-size="8" text-anchor="middle">:5432</text>
+        <rect x="60" y="155" width="880" height="100" rx="7" fill="oklch(0.92 0.035 170 / 0.08)" stroke="oklch(0.55 0.17 170 / 0.3)" stroke-width="1.3" stroke-dasharray="5,3" />
+        <rect x="76" y="159" width="60" height="20" rx="4" fill="oklch(0.55 0.17 170)" />
+        <text x="106" y="173" fill="oklch(1 0.005 250)" font-size="10" font-weight="600" text-anchor="middle">后端层</text>
 
-        <!-- Legend -->
-        <text x="30" y="350" fill="white" font-size="10" font-weight="600">Legend</text>
-        <rect x="30" y="362" width="16" height="10" rx="2" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee" stroke-width="1"/>
-        <text x="52" y="370" fill="#94a3b8" font-size="8">Frontend</text>
-        <rect x="110" y="362" width="16" height="10" rx="2" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1"/>
-        <text x="132" y="370" fill="#94a3b8" font-size="8">Backend</text>
-        <rect x="190" y="362" width="16" height="10" rx="2" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1"/>
-        <text x="212" y="370" fill="#94a3b8" font-size="8">Database</text>
+        <rect x="420" y="180" width="160" height="55" rx="7" fill="oklch(0.92 0.035 170 / 0.12)" stroke="oklch(0.55 0.17 170)" stroke-width="1.3" />
+        <text x="500" y="203" fill="oklch(0.18 0.015 260)" font-size="13" font-weight="640" text-anchor="middle">Node.js API</text>
+        <text x="500" y="220" fill="oklch(0.55 0.02 260)" font-size="9" text-anchor="middle">Express · RESTful · 中间件</text>
+
+        <rect x="610" y="180" width="140" height="55" rx="7" fill="oklch(0.92 0.06 20 / 0.12)" stroke="oklch(0.55 0.22 20)" stroke-width="1.3" />
+        <text x="680" y="203" fill="oklch(0.18 0.015 260)" font-size="13" font-weight="640" text-anchor="middle">JWT 认证</text>
+        <text x="680" y="220" fill="oklch(0.55 0.02 260)" font-size="9" text-anchor="middle">OAuth2 · 鉴权</text>
+
+        <rect x="60" y="290" width="880" height="95" rx="7" fill="oklch(0.9 0.05 300 / 0.08)" stroke="oklch(0.5 0.2 300 / 0.3)" stroke-width="1.3" stroke-dasharray="5,3" />
+        <rect x="76" y="294" width="60" height="20" rx="4" fill="oklch(0.5 0.2 300)" />
+        <text x="106" y="308" fill="oklch(1 0.005 250)" font-size="10" font-weight="600" text-anchor="middle">数据层</text>
+
+        <rect x="310" y="315" width="180" height="55" rx="7" fill="oklch(0.9 0.05 300 / 0.12)" stroke="oklch(0.5 0.2 300)" stroke-width="1.3" />
+        <text x="400" y="338" fill="oklch(0.18 0.015 260)" font-size="13" font-weight="640" text-anchor="middle">PostgreSQL</text>
+        <text x="400" y="355" fill="oklch(0.55 0.02 260)" font-size="9" text-anchor="middle">主数据库 · 关系存储</text>
+
+        <rect x="510" y="315" width="180" height="55" rx="7" fill="oklch(0.9 0.05 300 / 0.12)" stroke="oklch(0.5 0.2 300)" stroke-width="1.3" />
+        <text x="600" y="338" fill="oklch(0.18 0.015 260)" font-size="13" font-weight="640" text-anchor="middle">Redis</text>
+        <text x="600" y="355" fill="oklch(0.55 0.02 260)" font-size="9" text-anchor="middle">缓存 · 会话管理</text>
+
+        <rect x="60" y="470" width="16" height="10" rx="2" fill="oklch(0.92 0.04 250 / 0.12)" stroke="oklch(0.55 0.2 250)" stroke-width="1" />
+        <text x="82" y="479" fill="oklch(0.55 0.02 260)" font-size="9">前端</text>
+        <rect x="130" y="470" width="16" height="10" rx="2" fill="oklch(0.92 0.035 170 / 0.12)" stroke="oklch(0.55 0.17 170)" stroke-width="1" />
+        <text x="152" y="479" fill="oklch(0.55 0.02 260)" font-size="9">后端</text>
+        <rect x="200" y="470" width="16" height="10" rx="2" fill="oklch(0.9 0.05 300 / 0.12)" stroke="oklch(0.5 0.2 300)" stroke-width="1" />
+        <text x="222" y="479" fill="oklch(0.55 0.02 260)" font-size="9">数据库</text>
+        <rect x="280" y="470" width="16" height="10" rx="2" fill="oklch(0.92 0.06 20 / 0.12)" stroke="oklch(0.55 0.22 20)" stroke-width="1" />
+        <text x="302" y="479" fill="oklch(0.55 0.02 260)" font-size="9">安全</text>
       </svg>
-    </div>
 
-    <div class="cards">
-      <div class="card">
-        <div class="card-header">
-          <div class="card-dot cyan"></div>
-          <h3>Frontend Stack</h3>
-        </div>
-        <ul>
-          <li>• React 18 with hooks</li>
-          <li>• TypeScript for type safety</li>
-          <li>• Tailwind CSS styling</li>
-          <li>• Vite build tool</li>
-        </ul>
-      </div>
-      <div class="card">
-        <div class="card-header">
-          <div class="card-dot emerald"></div>
-          <h3>Backend Stack</h3>
-        </div>
-        <ul>
-          <li>• Node.js runtime</li>
-          <li>• Express framework</li>
-          <li>• JWT authentication</li>
-          <li>• REST API design</li>
-        </ul>
-      </div>
-      <div class="card">
-        <div class="card-header">
-          <div class="card-dot violet"></div>
-          <h3>Data Layer</h3>
-        </div>
-        <ul>
-          <li>• PostgreSQL database</li>
-          <li>• Prisma ORM</li>
-          <li>• Redis caching</li>
-          <li>• S3 file storage</li>
-        </ul>
-      </div>
+      <pre style="display:none" class="mermaid-src">%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#e8f4f8', 'primaryBorderColor': '#2b95c2', 'lineColor': '#94a3b8', 'fontFamily': 'Microsoft YaHei'}}}%%
+flowchart TD
+  subgraph 前端层
+    direction LR
+    R[React 前端<br/>SPA · TypeScript]
+  end
+  subgraph 后端层
+    direction LR
+    N[Node.js API<br/>Express · RESTful]
+    J[JWT 认证<br/>OAuth2 · 鉴权]
+  end
+  subgraph 数据层
+    direction LR
+    P[(PostgreSQL<br/>主数据库)]
+    RD[(Redis<br/>缓存 · 会话)]
+  end
+  R -- HTTPS --> N
+  N -- SQL --> P
+  N -- Redis --> RD
+  J -. JWT + PKCE .-> R</pre>
     </div>
-
-    <p class="footer">Web Application Architecture • Three-tier design</p>
   </div>
-
   <script>
-    async function copyAsImage(btn) {
-      const orig = btn.textContent;
-      try {
-        const el = document.getElementById('report-container');
-        const r = el.getBoundingClientRect();
-        const pad = 32;
-        const canvas = await html2canvas(document.body, { backgroundColor: '#020617', scale: 2, useCORS: true, ignoreElements: (e) => e.classList && e.classList.contains('toolbar'), x: r.left + window.scrollX - pad, y: r.top + window.scrollY - pad, width: r.width + pad * 2, height: r.height + pad * 2 });
-        const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
-        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-        btn.textContent = '✓ Copied!';
-      } catch (e) {
-        btn.textContent = '✗ Failed';
-      }
-      setTimeout(() => btn.textContent = orig, 2000);
-    }
-    async function downloadPNG(btn) {
-      const orig = btn.textContent;
-      btn.textContent = '⏳ ...';
-      try {
-        const el = document.getElementById('report-container');
-        const r = el.getBoundingClientRect();
-        const pad = 32;
-        const canvas = await html2canvas(document.body, { backgroundColor: '#020617', scale: 2, useCORS: true, ignoreElements: (e) => e.classList && e.classList.contains('toolbar'), x: r.left + window.scrollX - pad, y: r.top + window.scrollY - pad, width: r.width + pad * 2, height: r.height + pad * 2 });
-        const link = document.createElement('a');
-        link.download = 'web-app.png';
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-        btn.textContent = '✓ Done!';
-      } catch (e) {
-        btn.textContent = '✗ Failed';
-      }
-      setTimeout(() => btn.textContent = orig, 2000);
-    }
-    async function downloadPDF(btn) {
-      const orig = btn.textContent;
-      btn.textContent = '⏳ ...';
-      try {
-        const el = document.getElementById('report-container');
-        const r = el.getBoundingClientRect();
-        const pad = 32;
-        const canvas = await html2canvas(document.body, { backgroundColor: '#020617', scale: 2, useCORS: true, ignoreElements: (e) => e.classList && e.classList.contains('toolbar'), x: r.left + window.scrollX - pad, y: r.top + window.scrollY - pad, width: r.width + pad * 2, height: r.height + pad * 2 });
-        const imgData = canvas.toDataURL('image/png');
-        const { jsPDF } = window.jspdf;
-        const orientation = canvas.width > canvas.height ? 'landscape' : 'portrait';
-        const pdf = new jsPDF({ orientation, unit: 'px', format: [canvas.width, canvas.height], hotfixes: ['px_scaling'] });
-        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-        pdf.save('web-app.pdf');
-        btn.textContent = '✓ Done!';
-      } catch (e) {
-        btn.textContent = '✗ Failed';
-      }
-      setTimeout(() => btn.textContent = orig, 2000);
-    }
+    function serializeSvg() { const svg = document.querySelector('svg'); const clone = svg.cloneNode(true); clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg'); clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink'); return '<?xml version="1.0" encoding="UTF-8"?>\n' + new XMLSerializer().serializeToString(clone); }
+    async function copySVG(btn) { const orig = btn.textContent; try { await navigator.clipboard.writeText(serializeSvg()); btn.textContent = '✓ 已复制'; } catch (e) { btn.textContent = '✗ 失败'; } setTimeout(function() { btn.textContent = orig; }, 2000); }
+    function downloadSVG(btn) { const orig = btn.textContent; try { const blob = new Blob([serializeSvg()], { type: 'image/svg+xml;charset=utf-8' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = 'web-app.svg'; link.click(); URL.revokeObjectURL(url); btn.textContent = '✓ 完成'; } catch (e) { btn.textContent = '✗ 失败'; } setTimeout(function() { btn.textContent = orig; }, 2000); }
+    async function copyMermaid(btn) { const orig = btn.textContent; const pre = document.querySelector('.mermaid-src'); if (!pre) { btn.textContent = '✗ 失败'; setTimeout(function() { btn.textContent = orig; }, 2000); return; } try { await navigator.clipboard.writeText(pre.textContent); btn.textContent = '✓ 已复制'; } catch (e) { btn.textContent = '✗ 失败'; } setTimeout(function() { btn.textContent = orig; }, 2000); }
   </script>
 </body>
 </html>

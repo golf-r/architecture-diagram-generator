@@ -1,177 +1,330 @@
 ---
 name: architecture-diagram
-description: Create polished dark-themed architecture diagrams as self-contained HTML+SVG files. Use when the user asks for system, infrastructure, cloud, security, or network topology diagrams.
+description: Use when creating architecture overview diagrams or flowcharts that need Mermaid source, HTML preview, and premium SVG output with Chinese UI and a white background.
 ---
 
 # Architecture Diagram Skill
 
-Create professional technical architecture diagrams as self-contained HTML files with inline SVG graphics and CSS styling.
+Create professional architecture overview diagrams and flowcharts as self-contained HTML files with inline SVG graphics and CSS styling — white background, Chinese UI, clean, minimal, and visually premium. The default workflow is: preview in HTML, copy Mermaid source, then export SVG.
 
-> **Version 1.1** · MIT License · Authored by [Cocoon AI](mailto:hello@cocoon-ai.com)
+> **Version 2.0** · MIT License · Adapted from Cocoon AI
 
 ## Design System
 
-### Color Palette
+### Diagram Quality Requirements
 
-Use these semantic colors for component types:
+- Logic must be self-consistent. Every component, arrow, and label should reflect the actual system boundary or data flow.
+- Prefer low-saturation fills with stronger strokes. Avoid neon colors, pure black borders, and overly bright reds.
+- Do not allow arrows or connector lines to overlap boxes, labels, or each other unless there is no cleaner alternative and the route is clearly separated.
+- If a clean route is not possible, rearrange the layout first. Do not force a crossing line.
+- Use orthogonal or L-shaped routing by default; use a straight line only when it is clearly unobstructed.
+- Keep arrow labels short and place them away from corners, boundaries, and other labels.
+- The final diagram should read cleanly at a glance, without visual congestion.
 
-| Component Type | Fill (rgba) | Stroke |
-|---------------|-------------|--------|
-| Frontend | `rgba(8, 51, 68, 0.4)` | `#22d3ee` (cyan-400) |
-| Backend | `rgba(6, 78, 59, 0.4)` | `#34d399` (emerald-400) |
-| Database | `rgba(76, 29, 149, 0.4)` | `#a78bfa` (violet-400) |
-| AWS/Cloud | `rgba(120, 53, 15, 0.3)` | `#fbbf24` (amber-400) |
-| Security | `rgba(136, 19, 55, 0.4)` | `#fb7185` (rose-400) |
-| Message Bus | `rgba(251, 146, 60, 0.3)` | `#fb923c` (orange-400) |
-| External/Generic | `rgba(30, 41, 59, 0.5)` | `#94a3b8` (slate-400) |
+### Color Palette (OKLCH)
+
+Use OKLCH color space. Reduce chroma as lightness approaches 0 or 100. Never use `#000` or `#fff` — tint every neutral toward the brand hue (chroma 0.005–0.01). Default brand hue: 250° (blue-cyan).
+
+Semantic colors for component types on **white background**:
+
+| Component Type | Fill (oklch) | Stroke (oklch) |
+|---------------|--------------|-----------------|
+| Frontend / Entry | `oklch(0.92 0.04 250 / 0.12)` | `oklch(0.55 0.2 250)` |
+| Backend / Core | `oklch(0.92 0.035 170 / 0.12)` | `oklch(0.55 0.17 170)` |
+| Database / Storage | `oklch(0.9 0.05 300 / 0.12)` | `oklch(0.5 0.2 300)` |
+| Cloud / External API | `oklch(0.92 0.04 230 / 0.12)` | `oklch(0.55 0.18 230)` |
+| Security | `oklch(0.92 0.06 20 / 0.12)` | `oklch(0.55 0.22 20)` |
+| Plugin / Message Bus | `oklch(0.92 0.04 80 / 0.12)` | `oklch(0.55 0.18 80)` |
+| External/Generic | `oklch(0.92 0.01 260 / 0.12)` | `oklch(0.55 0.03 260)` |
+
+Neutral colors (page, text, borders):
+
+| Element | OKLCH |
+|---------|-------|
+| Page background | `#ffffff` |
+| Card background | `#ffffff` |
+| Primary text | `oklch(0.18 0.015 260)` |
+| Muted text | `oklch(0.55 0.02 260)` |
+| Annotation text | `oklch(0.55 0.025 260)` |
+| Border / divider | `oklch(0.9 0.008 260)` |
+| Arrow stroke | `oklch(0.62 0.025 260)` |
+| Button hover | `oklch(0.96 0.006 260)` |
 
 ### Typography
 
-Use JetBrains Mono for all text (monospace, technical aesthetic):
+Use Microsoft YaHei for Chinese readability:
 ```html
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+font-family: 'Microsoft YaHei', 'PingFang SC', -apple-system, sans-serif;
 ```
 
-Font sizes: 12px for component names, 9px for sublabels, 8px for annotations, 7px for tiny labels.
+Hierarchy through weight + size contrast (≥1.25 ratio between steps):
+
+| Element | Size | Weight |
+|---------|------|--------|
+| Title | 18px | 650 |
+| Subtitle | 13px | 420 |
+| Component name | 12–13px | 620–650 |
+| Sublabel | 9–10px | 400 |
+| Annotation / arrow label | 9px | 500 |
+| Layer pill label | 10px | 600 |
 
 ### Visual Elements
 
-**Background:** `#020617` (slate-950) with subtle grid pattern:
+**Background:** Tinted light page with white card container:
+```css
+body { background: #ffffff; }
+.container { background: #ffffff; box-shadow: 0 1px 2px oklch(0 0 0 / 0.04), 0 8px 24px oklch(0 0 0 / 0.06); }
+```
+
+**Pulse dot:** Animated indicator in header:
+```css
+.pulse-dot { width: 10px; height: 10px; border-radius: 50%; background: oklch(0.55 0.2 250); animation: pulse 2.4s ease-in-out infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.85); } }
+```
+
+**Grid pattern:** Very light on white background:
 ```svg
-<pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-  <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+<pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+  <path d="M 32 0 L 0 0 0 32" fill="none" stroke="oklch(0.96 0.006 250)" stroke-width="0.5"/>
 </pattern>
 ```
 
-**Component boxes:** Rounded rectangles (`rx="6"`) with 1.5px stroke, semi-transparent fills.
-
-**Security groups:** Dashed stroke (`stroke-dasharray="4,4"`), transparent fill, rose color.
-
-**Region boundaries:** Larger dashed stroke (`stroke-dasharray="8,4"`), amber color, `rx="12"`.
-
-**Arrows:** Use SVG marker for arrowheads:
+**Layer labels:** Use filled pill rect + white text instead of bare label text:
 ```svg
-<marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-  <polygon points="0 0, 10 3.5, 0 7" fill="#64748b" />
+<rect x="X" y="Y" width="84" height="20" rx="4" fill="STROKE_COLOR" />
+<text x="CX" y="Y+14" fill="oklch(1 0.005 250)" font-size="10" font-weight="600" text-anchor="middle">层名称</text>
+```
+
+**Component boxes:** Rounded rectangles (`rx="6"`–`"7"`) with 1.3–1.5px stroke, light translucent fills. No opaque background needed (fills are transparent enough on white).
+
+**Region boundaries:** Dashed stroke (`stroke-dasharray="5,3"`), matching component color, with subtle tinted fill (`/ 0.08`).
+
+**Arrows:** Use SVG markers for arrowheads, drawn before component boxes (behind them):
+```svg
+<marker id="a-gray" markerWidth="8" markerHeight="5.5" refX="7" refY="2.75" orient="auto">
+  <polygon points="0 0, 8 2.75, 0 5.5" fill="oklch(0.62 0.025 260)" />
 </marker>
 ```
 
-**Arrow z-order:** Draw connection arrows early in the SVG (after the background grid) so they render behind component boxes. SVG elements are painted in document order, so arrows drawn first will appear behind shapes drawn later.
+**Routing rule:** Prefer orthogonal segments and spacer gaps over diagonal shortcuts. If two routes would cross, move one component or split the layer into a separate row.
 
-**Masking arrows behind transparent fills:** Since component boxes use semi-transparent fills (`rgba(..., 0.4)`), arrows behind them will show through. To fully mask arrows, draw an opaque background rect (e.g., `fill="#0f172a"`) at the same position before drawing the semi-transparent styled rect on top:
-```svg
-<!-- Opaque background to mask arrows -->
-<rect x="X" y="Y" width="W" height="H" rx="6" fill="#0f172a"/>
-<!-- Styled component on top -->
-<rect x="X" y="Y" width="W" height="H" rx="6" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1.5"/>
+**Arrow labels:** White rounded pill (`rx="3"`) behind text for legibility over grid lines:
+```html
+<rect x="X" y="Y" width="W" height="15" rx="3" fill="oklch(1 0.005 250)" opacity="0.88" />
+<text x="X+3" y="Y+11" fill="oklch(0.55 0.025 260)" font-size="9" font-weight="500">标签</text>
 ```
 
-**Auth/security flows:** Dashed lines in rose color (`#fb7185`).
+### Layout Rules
 
-**Message buses / Event buses:** Small connector elements between services. Use orange color (`#fb923c` stroke, `rgba(251, 146, 60, 0.3)` fill):
-```svg
-<rect x="X" y="Y" width="120" height="20" rx="4" fill="rgba(251, 146, 60, 0.3)" stroke="#fb923c" stroke-width="1"/>
-<text x="CENTER_X" y="Y+14" fill="#fb923c" font-size="7" text-anchor="middle">Kafka / RabbitMQ</text>
-```
+- **Component height:** 55px for services, 60-85px for larger groups
+- **Minimum horizontal gap between sibling components:** 30px
+- **Minimum vertical gap between stacked components:** 40px
+- **Layer boundary padding (from outermost components):** 15-20px on each side
+- **Legend offset from lowest element:** ≥15px
+- **Arrow end offset from target:** 2px (for marker-end rendering)
+- **Arrow label position:** centered between connected edges, ±8px from arrow line
 
-### Spacing Rules
+### Premium Styling Rules
 
-**CRITICAL:** When stacking components vertically, ensure proper spacing to avoid overlaps:
-
-- **Standard component height:** 60px for services, 80-120px for larger components
-- **Minimum vertical gap between components:** 40px
-- **Inline connectors (message buses):** Place IN the gap between components, not overlapping
-
-**Example vertical layout:**
-```
-Component A: y=70,  height=60  → ends at y=130
-Gap:         y=130 to y=170   → 40px gap, place bus at y=140 (20px tall)
-Component B: y=170, height=60  → ends at y=230
-```
-
-**Wrong:** Placing a message bus at y=160 when Component B starts at y=170 (causes overlap)
-**Right:** Placing a message bus at y=140, centered in the 40px gap (y=130 to y=170)
+- Use OKLCH fills at 8%-15% lightness + low chroma, and consistent mid-chroma strokes.
+- Use `oklch(0.18 0.015 260)` for primary text, `oklch(0.55 0.02 260)` for annotations/descriptions.
+- Prefer spacious layouts with fewer but clearer arrows over dense connector webs.
+- Use dashed boundaries only for regions with subtle tinted fills; keep them subtle.
+- Arrow labels get a semi-transparent white pill background (`opacity="0.88"`) for legibility over grid lines.
+- Maintain 650/420/620/400 font weight contrast between title, subtitle, component names, and sub-labels.
+- Use `rx="5"`–`"7"` rounded corners consistently throughout; don't mix corner radii.
 
 ### Legend Placement
 
-**CRITICAL:** Place legends OUTSIDE all boundary boxes (region boundaries, cluster boundaries, security groups).
-
-- Calculate where all boundaries end (y position + height)
-- Place legend at least 20px below the lowest boundary
-- Expand SVG viewBox height if needed to accommodate
-
-**Example:**
-```
-Kubernetes Cluster: y=30, height=460 → ends at y=490
-Legend should start at: y=510 or below
-SVG viewBox height: at least 560 to fit legend
-```
-
-**Wrong:** Legend at y=470 inside a cluster boundary that ends at y=490
-**Right:** Legend at y=510, below the cluster boundary, with viewBox height extended
+- Place legend at least 15px below the lowest boundary/component
+- Expand SVG viewBox height if needed
 
 ### Layout Structure
 
-1. **Header** - Title with pulsing dot indicator, subtitle, and export toolbar
-2. **Main SVG diagram** - Contained in rounded border card
-3. **Summary cards** - Grid of 3 cards below diagram with key details
-4. **Footer** - Minimal metadata line
+1. **Header** — Title with pulsing dot indicator and export toolbar
+2. **Main SVG diagram** — Contained in rounded border card
+3. **No summary cards or footer** — keep output clean and minimal
+
+## Common Diagram Types
+
+- **Architecture overview diagrams**: Show system boundaries, major components, and data flow at a high level.
+- **Flowcharts**: Show step-by-step process logic, decisions, and branches.
+
+## Export Policy
+
+- Mermaid is the editable source.
+- SVG is the shareable vector format.
+- Keep the HTML preview self-contained so the diagram can be reviewed before export.
 
 ### Export Toolbar (built-in)
 
-Every diagram ships with a single unobtrusive `⋯` toggle in the header. Click it to reveal three buttons — 📋 Copy (high-DPI PNG to clipboard, scale: 2), 🖼️ PNG (high-DPI PNG download), 📄 PDF (PNG embedded in a one-page PDF via jsPDF). The toolbar collapses back to the icon by default so it doesn't clutter the diagram. All three formats use the same html2canvas capture (with the toolbar excluded and 32px padding around the content), so PDF preserves the dark theme without going through the browser's print dialog.
+Every diagram ships with a header toolbar containing three buttons — Mermaid, Copy SVG, and Download SVG.
 
-When generating a new diagram, keep these intact in the template:
-- The two CDN scripts in `<head>` (pinned versions, with Subresource Integrity hashes and `crossorigin="anonymous"`):
-  - `https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js` — `integrity="sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H"`
-  - `https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js` — `integrity="sha384-en/ztfPSRkGfME4KIm05joYXynqzUgbsG5nMrj/xEFAHXkeZfO3yMK8QQ+mP7p1/"`
-  - SRI ensures generated diagrams are tamper-resistant against CDN compromise. Do not modify the hashes; if the version is bumped, the new hash must be computed fresh.
-- `id="report-container"` on the outermost `.container` div (this is what gets captured)
-- `.toolbar` markup with `.toolbar-actions` (collapsed by default) and `.toolbar-toggle` (the `⋯` button)
-- `.toolbar` CSS + `@media print { .toolbar { display: none !important; } }`
-- `copyAsImage()`, `downloadPNG()`, and `downloadPDF()` script before `</body>`, all using `getBoundingClientRect()` + `html2canvas(document.body, { x, y, width, height, ignoreElements })` to capture a precise rect with breathing room and no toolbar
+Minimal JavaScript is allowed for toolbar actions only. The diagram itself must remain SVG-first and self-contained.
 
-Caveats: clipboard API needs a user gesture and a secure context (https/file/localhost). SVG `<foreignObject>` renders inconsistently in html2canvas — stick to plain `<svg>` shapes and `<text>`. Bump `scale: 2` to `3` or `4` for higher-res output.
+Keep these intact in the template:
+- `id="report-container"` on the outermost `.container` div
+- `.toolbar` div with `.toolbar-btn` buttons
+- `@media print { .toolbar { display: none !important; } }`
+- `copyMermaid()`, `copySVG()`, `downloadSVG()` before `</body>`
+- The template should remain free of external image export libraries
 
 ### Component Box Pattern
 
 ```svg
-<rect x="X" y="Y" width="W" height="H" rx="6" fill="FILL_COLOR" stroke="STROKE_COLOR" stroke-width="1.5"/>
-<text x="CENTER_X" y="Y+20" fill="white" font-size="11" font-weight="600" text-anchor="middle">LABEL</text>
-<text x="CENTER_X" y="Y+36" fill="#94a3b8" font-size="9" text-anchor="middle">sublabel</text>
-```
-
-### Info Card Pattern
-
-```html
-<div class="card">
-  <div class="card-header">
-    <div class="card-dot COLOR"></div>
-    <h3>Title</h3>
-  </div>
-  <ul>
-    <li>• Item one</li>
-    <li>• Item two</li>
-  </ul>
-</div>
+<rect x="X" y="Y" width="W" height="H" rx="7" fill="oklch(HUE_CHROMA / 0.12)" stroke="STROKE_OKLCH" stroke-width="1.3"/>
+<text x="CX" y="Y+22" fill="oklch(0.18 0.015 260)" font-size="12" font-weight="620" text-anchor="middle">NAME</text>
+<text x="CX" y="Y+38" fill="oklch(0.55 0.02 260)" font-size="9" text-anchor="middle">说明文字</text>
 ```
 
 ## Template
 
 Copy and customize the template at `resources/template.html`. Key customization points:
 
-1. Update the `<title>` and header text
-2. Modify SVG viewBox dimensions if needed (default: `1000 x 680`)
+1. Update the `<title>` and header text (Chinese)
+2. Modify SVG viewBox dimensions
 3. Add/remove/reposition component boxes
 4. Draw connection arrows between components
-5. Update the three summary cards
-6. Update footer metadata
+5. Update legend colors
+
+## Arrow Routing Reference
+
+Creating complex architecture overview diagrams with multiple layers and crossing arrows requires careful coordinate planning. For reusable routing patterns, see `resources/routing.js`:
+
+- **L-shape:** Vertical then horizontal (component in different rows/columns)
+- **U-shape:** Route around an obstacle by going wide and then back in
+- **Obstacle avoidance:** Pass through narrow gaps between side-by-side components
+
+### Boundary Detection Checklist
+
+After placing all component boxes and before drawing arrows, verify:
+
+```
+[ ] No two component rects overlap (check x-range vs x-range, y-range vs y-range)
+[ ] Arrow endpoints are 2px from target component edge
+[ ] Each arrow's intermediate segments avoid all component rects
+    (check every segment's y against every rect's y-range,
+     and every segment's x against every rect's x-range)
+[ ] Arrow labels do not overlap any rect
+[ ] No two arrows cross at the same point (parallel lines OK, crossing X-shape is not)
+[ ] Layer boundaries are ≥15px beyond outermost component edges
+[ ] Legend is ≥15px below lowest boundary/component
+[ ] viewBox height accommodates everything with 10-20px bottom padding
+```
+
+### Verification Gate
+
+**Before claiming the diagram is complete, run this checklist:**
+
+1. Open the `.html` file in a browser
+2. Visually confirm: no arrows pass through boxes
+3. Visually confirm: all labels legible
+4. Run the quality checker on the HTML preview and the exported SVG
+5. Toggle the export toolbar and test Mermaid, copy SVG, and download SVG
+6. If any issue found → fix coordinates or markup and re-run from step 1
+
+### Quality Check Workflow
+
+Run the checker before shipping any diagram output:
+
+```bash
+python scripts/svg_quality_checker.py path/to/diagram.html
+python scripts/svg_quality_checker.py path/to/diagram.svg
+python scripts/svg_quality_checker.py --publish path/to/diagram.html
+python scripts/svg_quality_checker.py --publish path/to/diagram.svg
+```
+
+The checker must treat these as hard errors:
+
+- invalid SVG XML
+- missing `viewBox`
+- missing `toolbar` / `mermaid-src` in the HTML wrapper
+- missing Mermaid / SVG toolbar actions in the HTML wrapper
+- forbidden SVG elements such as `script`, `foreignObject`, or `style`
+
+The checker should surface these as warnings:
+
+- missing `role="img"`
+- missing `aria-label`
+- unusual `viewBox` formatting
+- width / height values that do not match the `viewBox`
+
+For final release / sharing / export, run the checker with `--publish` so any warning also fails the check. Use the non-publish mode only for iteration while you are still arranging the diagram.
+
+**Red flags — stop and verify:**
+- "Arrows look right in my head" → open the file and look
+- "The coordinates should work" → calculate, don't estimate
+- "Close enough" → overlapping arrow is a visual bug, not "close enough"
+
+## Mermaid 导出
+
+架构图和流程图都以 Mermaid 作为可编辑源定义，HTML 负责预览，SVG 负责对外分享。
+
+### 使用方式
+
+生成 HTML 后，使用工具栏复制 Mermaid 源码；需要分享或归档时，导出 SVG。
+
+### SVG → Mermaid 映射规则
+
+| SVG 元素 | Mermaid | 说明 |
+|---------|---------|------|
+| 入口组件 | `A([text])` | 跑道圆角，cyan 色 |
+| 核心服务 | `A[text]` | 直角矩形，emerald 色 |
+| 插件/采集器 | `A[text]` + `subgraph` | 矩形含子节点，orange 色 |
+| 存储/数据库 | `A[(text)]` | 圆柱形，violet 色 |
+| 外部 API | `A([text])` | 跑道圆角，amber 色 |
+| 层边界 | `subgraph 名称 ... end` | 对应 SVG 虚线矩形 |
+| 箭头 | `-->` / `--\|标签\|-->` | 与 SVG 箭头对应 |
+| 组件说明行 | `A[名称<br/>说明]` | `<br/>` 在 Mermaid 节点内换行 |
+| 图方向 | `flowchart TD` / `flowchart LR` | 自上而下 / 自左向右；子图内加 `direction LR` 实现层内横向排列 |
+
+### 完整示例
+
+对一个三层架构（入口 → 核心 → 外部），Mermaid 定义如下：
+
+```
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#e8f4f8', 'primaryBorderColor': '#2b95c2', 'lineColor': '#94a3b8', 'fontFamily': 'Microsoft YaHei'}}}%%
+flowchart TD
+  subgraph 核心层
+    direction LR
+    M[main.py<br/>程序入口 · 流程编排]
+    PM[PluginManager<br/>动态加载 · 生命周期]
+  end
+  subgraph 插件层
+    direction LR
+    CP[采集器插件<br/>issue · pr · commit]
+  end
+  subgraph 外部
+    direction LR
+    API[(GitCode API)]
+  end
+  M --> PM
+  PM --> CP
+  CP --> API
+```
+
+### 注意事项
+
+- Mermaid `themeVariables` 对所有节点应用同一颜色。如需多层多色（如核心层 emerald + 插件层 orange），可使用 `classDef` 为不同 `subgraph` 内的节点单独赋色
+- 复杂绕行箭头在 Mermaid 中简化为直接连线（Mermaid 自动布局处理）
+- 子组件（如采集器内的 GitHub/Gitee 等）在 Mermaid 中简化为单节点
+- 默认使用 `flowchart TD` + 子图内 `direction LR`（层间纵向、层内横向），也可整体切换为 `flowchart LR`（全横向）
+- 如果 Mermaid 自动布局导致线条交叉，优先调整子图顺序、拆分层次或加入中间汇聚节点，而不是接受交叉。
+
+### 自检
+
+```
+[ ] Mermaid 定义语法正确（%%{init}%% 块闭合、括号匹配、箭头方向正确）
+[ ] 与 SVG 图内容一致（节点、层级、连接关系匹配）
+[ ] 在浏览器中预览正常，SVG 导出后仍保持清晰矢量效果
+[ ] `python scripts/svg_quality_checker.py path/to/diagram.html` 无错误
+[ ] `python scripts/svg_quality_checker.py path/to/diagram.svg` 无错误
+```
 
 ## Output
 
 Always produce a single self-contained `.html` file with:
-- Embedded CSS (no external stylesheets except Google Fonts)
+- Embedded CSS (inline styles)
 - Inline SVG (no external images)
-- No JavaScript required (pure CSS animations)
-
-The file should render correctly when opened directly in any modern browser. The export toolbar uses two CDN scripts (html2canvas and jsPDF) — no other JavaScript dependencies.
+- Pure SVG for the diagram itself; tiny JavaScript is allowed only for the export toolbar and Mermaid copy actions
+- Export toolbar actions: Mermaid, Copy SVG, Download SVG
