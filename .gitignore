@@ -2,3 +2,5 @@
 *.DS_Store
 .claude/commands/spyder.md
 test-output.html
+
+__pycache__/
