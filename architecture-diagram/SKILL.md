@@ -3,173 +3,196 @@ name: architecture-diagram
 description: Use when creating architecture overview diagrams or flowcharts that need Mermaid source, HTML preview, and premium SVG output with Chinese UI and a white background.
 ---
 
-# Architecture Diagram Skill
+# Architecture Diagram Generator
 
-Create professional architecture overview diagrams and flowcharts as self-contained HTML files with inline SVG graphics and CSS styling — white background, Chinese UI, clean, minimal, and visually premium. The default workflow is: preview in HTML, copy Mermaid source, then export SVG.
+创建专业的架构概览图和流程图，输出自包含的 HTML 文件，含内联 SVG 矢量图形、中文界面、白色背景，支持 Mermaid 源码编辑和 SVG 导出。
 
-> **Version 2.0** · MIT License · Adapted from Cocoon AI
+> **Version 2.0** · MIT License · 源于 Cocoon AI
 
-## Design System
+## 快速上手
 
-### Diagram Quality Requirements
+```
+architecture-diagram/
+├── SKILL.md                      # 本说明文档
+├── resources/
+│   ├── template.html             # 输出模板（核心文件）
+│   └── routing.js                # 箭头绕行参考
+├── scripts/
+│   └── svg_quality_checker.py    # 质量检查工具
+└── tests/
+    └── test_svg_quality_checker.py
+```
 
-- Logic must be self-consistent. Every component, arrow, and label should reflect the actual system boundary or data flow.
-- Prefer low-saturation fills with stronger strokes. Avoid neon colors, pure black borders, and overly bright reds.
-- Do not allow arrows or connector lines to overlap boxes, labels, or each other unless there is no cleaner alternative and the route is clearly separated.
-- If a clean route is not possible, rearrange the layout first. Do not force a crossing line.
-- Use orthogonal or L-shaped routing by default; use a straight line only when it is clearly unobstructed.
-- Keep arrow labels short and place them away from corners, boundaries, and other labels.
-- The final diagram should read cleanly at a glance, without visual congestion.
+### 部署到 AI 编程助手
 
-### Color Palette (OKLCH)
+**opencode** — 将 `architecture-diagram/` 复制到 `~/.opencode/skills/` 目录：
 
-Use OKLCH color space. Reduce chroma as lightness approaches 0 or 100. Never use `#000` or `#fff` — tint every neutral toward the brand hue (chroma 0.005–0.01). Default brand hue: 250° (blue-cyan).
+```bash
+cp -r architecture-diagram ~/.opencode/skills/
+```
 
-Semantic colors for component types on **white background**:
+**其他助手** — 将仓库代码放入对应系统的 skill 目录即可。AI 助手读取 `SKILL.md` 后即可按规范生成架构图。
 
-| Component Type | Fill (oklch) | Stroke (oklch) |
-|---------------|--------------|-----------------|
-| Frontend / Entry | `oklch(0.92 0.04 250 / 0.12)` | `oklch(0.55 0.2 250)` |
-| Backend / Core | `oklch(0.92 0.035 170 / 0.12)` | `oklch(0.55 0.17 170)` |
-| Database / Storage | `oklch(0.9 0.05 300 / 0.12)` | `oklch(0.5 0.2 300)` |
-| Cloud / External API | `oklch(0.92 0.04 230 / 0.12)` | `oklch(0.55 0.18 230)` |
-| Security | `oklch(0.92 0.06 20 / 0.12)` | `oklch(0.55 0.22 20)` |
-| Plugin / Message Bus | `oklch(0.92 0.04 80 / 0.12)` | `oklch(0.55 0.18 80)` |
-| External/Generic | `oklch(0.92 0.01 260 / 0.12)` | `oklch(0.55 0.03 260)` |
+### 手动使用
 
-Neutral colors (page, text, borders):
+不依赖 AI 助手也能用：打开 `resources/template.html`，按注释修改 SVG 坐标和文字，在浏览器中预览效果。质量检查器独立运行：
 
-| Element | OKLCH |
-|---------|-------|
-| Page background | `#ffffff` |
-| Card background | `#ffffff` |
-| Primary text | `oklch(0.18 0.015 260)` |
-| Muted text | `oklch(0.55 0.02 260)` |
-| Annotation text | `oklch(0.55 0.025 260)` |
-| Border / divider | `oklch(0.9 0.008 260)` |
-| Arrow stroke | `oklch(0.62 0.025 260)` |
-| Button hover | `oklch(0.96 0.006 260)` |
+```bash
+python scripts/svg_quality_checker.py path/to/diagram.html
+```
 
-### Typography
+## 适用场景
 
-Use Microsoft YaHei for Chinese readability:
-```html
+### 架构概览图
+
+展示系统边界、主要组件、分层结构和数据流。适用于：
+
+- 项目 README 中的系统架构说明
+- 技术方案评审文档
+- 团队内部知识沉淀
+
+### 流程图
+
+展示步骤流程、决策分支、状态流转。适用于：
+
+- **SPEC / SRS 文档转流程图** — 将产品需求规格中的业务逻辑提取为可视化流程图，帮助开发和测试快速理解
+- 接口调用时序
+- CI/CD 流水线
+- 算法流程说明
+
+### 典型业务流程
+
+从需求文档到流程图：
+
+```
+[SPEC 文档] → [提取关键流程节点] → [编排 Mermaid 定义] → [生成 SVG HTML]
+```
+
+AI 助手读取 SPEC 文档后，识别其中的业务流转逻辑，自动生成对应的流程图 HTML，包含层边界、节点、连线、分支条件。
+
+## 设计规范
+
+### 制图质量要求
+
+- 逻辑自洽：每个组件、箭头、标签都应反映真实的系统边界或数据流
+- 配色克制：优先低饱和度填充 + 较高饱和度描边，避免霓虹色、纯黑边框、过亮红色
+- 连线不穿框：箭头/连线不得穿过组件方块。无法避免时先调整布局，而非强行交叉
+- 正交优先：默认 L 形折线绕行，仅在路径完全通畅时才使用直线
+- 箭头标签精简：避开角落、边界和其他标签
+- 成品应一目了然，不拥挤
+
+### 色板（OKLCH）
+
+使用 OKLCH 色彩空间。明度接近 0 或 100 时降低色度。避免 `#000` 或 `#fff`——所有中性色向品牌色相偏移（色度 0.005–0.01）。默认品牌色相：250°（蓝-青色）。
+
+组件语义色（白色背景上）：
+
+| 组件类型 | 填充 (oklch) | 描边 (oklch) |
+|---------|-------------|--------------|
+| 前端 / 入口 | `oklch(0.92 0.04 250 / 0.12)` | `oklch(0.55 0.2 250)` |
+| 后端 / 核心 | `oklch(0.92 0.035 170 / 0.12)` | `oklch(0.55 0.17 170)` |
+| 数据库 / 存储 | `oklch(0.9 0.05 300 / 0.12)` | `oklch(0.5 0.2 300)` |
+| 云服务 / 外部 API | `oklch(0.92 0.04 230 / 0.12)` | `oklch(0.55 0.18 230)` |
+| 安全 / 认证 | `oklch(0.92 0.06 20 / 0.12)` | `oklch(0.55 0.22 20)` |
+| 插件 / 消息总线 | `oklch(0.92 0.04 80 / 0.12)` | `oklch(0.55 0.18 80)` |
+| 外部 / 通用 | `oklch(0.92 0.01 260 / 0.12)` | `oklch(0.55 0.03 260)` |
+
+中性色：
+
+| 元素 | OKLCH |
+|------|-------|
+| 页面背景 | `#ffffff` |
+| 卡片背景 | `#ffffff` |
+| 正文 | `oklch(0.18 0.015 260)` |
+| 辅助文字 | `oklch(0.55 0.02 260)` |
+| 边界 / 分割线 | `oklch(0.9 0.008 260)` |
+| 箭头 | `oklch(0.62 0.025 260)` |
+
+### 排版
+
+```css
 font-family: 'Microsoft YaHei', 'PingFang SC', -apple-system, sans-serif;
 ```
 
-Hierarchy through weight + size contrast (≥1.25 ratio between steps):
+层级通过字重 + 字号对比实现（相邻级别字号比 ≥1.25）：
 
-| Element | Size | Weight |
-|---------|------|--------|
-| Title | 18px | 650 |
-| Subtitle | 13px | 420 |
-| Component name | 12–13px | 620–650 |
-| Sublabel | 9–10px | 400 |
-| Annotation / arrow label | 9px | 500 |
-| Layer pill label | 10px | 600 |
+| 元素 | 字号 | 字重 |
+|------|------|------|
+| 标题 | 18px | 650 |
+| 副标题 | 13px | 420 |
+| 组件名 | 12–13px | 620–650 |
+| 说明文字 | 9–10px | 400 |
+| 箭头标签 | 9px | 500 |
+| 层标签 | 10px | 600 |
 
-### Visual Elements
+### 视觉元素
 
-**Background:** Tinted light page with white card container:
+**背景:** 白色页面 + 白色卡片容器，卡片带轻微阴影：
 ```css
 body { background: #ffffff; }
 .container { background: #ffffff; box-shadow: 0 1px 2px oklch(0 0 0 / 0.04), 0 8px 24px oklch(0 0 0 / 0.06); }
 ```
 
-**Pulse dot:** Animated indicator in header:
+**脉冲点:** 标题栏动态指示器：
 ```css
 .pulse-dot { width: 10px; height: 10px; border-radius: 50%; background: oklch(0.55 0.2 250); animation: pulse 2.4s ease-in-out infinite; }
-@keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.85); } }
 ```
 
-**Grid pattern:** Very light on white background:
+**网格背景:** SVG 画布底部极浅网格线：
 ```svg
 <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
   <path d="M 32 0 L 0 0 0 32" fill="none" stroke="oklch(0.96 0.006 250)" stroke-width="0.5"/>
 </pattern>
 ```
 
-**Layer labels:** Use filled pill rect + white text instead of bare label text:
+**层标签:** 填充圆角矩形 + 白色文字：
 ```svg
 <rect x="X" y="Y" width="84" height="20" rx="4" fill="STROKE_COLOR" />
 <text x="CX" y="Y+14" fill="oklch(1 0.005 250)" font-size="10" font-weight="600" text-anchor="middle">层名称</text>
 ```
 
-**Component boxes:** Rounded rectangles (`rx="6"`–`"7"`) with 1.3–1.5px stroke, light translucent fills. No opaque background needed (fills are transparent enough on white).
+**组件方块:** 圆角矩形（`rx="6"–7`），1.3–1.5px 描边，半透明填充。
 
-**Region boundaries:** Dashed stroke (`stroke-dasharray="5,3"`), matching component color, with subtle tinted fill (`/ 0.08`).
+**区域边界:** 虚线描边（`stroke-dasharray="5,3"`），匹配组件色，微透明底色。
 
-**Arrows:** Use SVG markers for arrowheads, drawn before component boxes (behind them):
-```svg
-<marker id="a-gray" markerWidth="8" markerHeight="5.5" refX="7" refY="2.75" orient="auto">
-  <polygon points="0 0, 8 2.75, 0 5.5" fill="oklch(0.62 0.025 260)" />
-</marker>
-```
+**箭头:** SVG marker 箭头头，画在组件方块之前（位于底层）。
 
-**Routing rule:** Prefer orthogonal segments and spacer gaps over diagonal shortcuts. If two routes would cross, move one component or split the layer into a separate row.
+**箭头标签:** 白色圆角药丸形背景，避免被网格线干扰。
 
-**Arrow labels:** White rounded pill (`rx="3"`) behind text for legibility over grid lines:
-```html
-<rect x="X" y="Y" width="W" height="15" rx="3" fill="oklch(1 0.005 250)" opacity="0.88" />
-<text x="X+3" y="Y+11" fill="oklch(0.55 0.025 260)" font-size="9" font-weight="500">标签</text>
-```
+### 布局规则
 
-### Layout Rules
+- **组件高度:** 服务 55px，大分组 60-85px
+- **同级水平间距:** ≥30px
+- **上下层垂直间距:** ≥40px
+- **层边界内边距:** 距最外侧组件 15-20px
+- **图例偏移:** 距最低元素 ≥15px
+- **箭头端点偏移:** 距目标边缘 2px
+- **箭头标签位置:** 居中于连接边之间，距箭头线 ±8px
 
-- **Component height:** 55px for services, 60-85px for larger groups
-- **Minimum horizontal gap between sibling components:** 30px
-- **Minimum vertical gap between stacked components:** 40px
-- **Layer boundary padding (from outermost components):** 15-20px on each side
-- **Legend offset from lowest element:** ≥15px
-- **Arrow end offset from target:** 2px (for marker-end rendering)
-- **Arrow label position:** centered between connected edges, ±8px from arrow line
+### 布局结构
 
-### Premium Styling Rules
+1. **表头** — 标题 + 脉冲指示点 + 导出工具栏
+2. **SVG 主图** — 放在圆角边框卡片内
+3. **无底部卡片或页脚** — 保持输出简洁
 
-- Use OKLCH fills at 8%-15% lightness + low chroma, and consistent mid-chroma strokes.
-- Use `oklch(0.18 0.015 260)` for primary text, `oklch(0.55 0.02 260)` for annotations/descriptions.
-- Prefer spacious layouts with fewer but clearer arrows over dense connector webs.
-- Use dashed boundaries only for regions with subtle tinted fills; keep them subtle.
-- Arrow labels get a semi-transparent white pill background (`opacity="0.88"`) for legibility over grid lines.
-- Maintain 650/420/620/400 font weight contrast between title, subtitle, component names, and sub-labels.
-- Use `rx="5"`–`"7"` rounded corners consistently throughout; don't mix corner radii.
+## 导出工具栏
 
-### Legend Placement
+每个 HTML 自带三个按钮：
 
-- Place legend at least 15px below the lowest boundary/component
-- Expand SVG viewBox height if needed
+| 按钮 | 功能 |
+|------|------|
+| Mermaid | 复制 Mermaid 源码到剪贴板 |
+| 复制 SVG | 复制 SVG XML 到剪贴板 |
+| 下载 SVG | 下载 .svg 文件 |
 
-### Layout Structure
-
-1. **Header** — Title with pulsing dot indicator and export toolbar
-2. **Main SVG diagram** — Contained in rounded border card
-3. **No summary cards or footer** — keep output clean and minimal
-
-## Common Diagram Types
-
-- **Architecture overview diagrams**: Show system boundaries, major components, and data flow at a high level.
-- **Flowcharts**: Show step-by-step process logic, decisions, and branches.
-
-## Export Policy
-
-- Mermaid is the editable source.
-- SVG is the shareable vector format.
-- Keep the HTML preview self-contained so the diagram can be reviewed before export.
-
-### Export Toolbar (built-in)
-
-Every diagram ships with a header toolbar containing three buttons — Mermaid, Copy SVG, and Download SVG.
-
-Minimal JavaScript is allowed for toolbar actions only. The diagram itself must remain SVG-first and self-contained.
-
-Keep these intact in the template:
-- `id="report-container"` on the outermost `.container` div
-- `.toolbar` div with `.toolbar-btn` buttons
+模板中必须保留的元素：
+- `id="report-container"` 在 `.container` 上
+- `.toolbar` + `.toolbar-btn` 按钮
 - `@media print { .toolbar { display: none !important; } }`
-- `copyMermaid()`, `copySVG()`, `downloadSVG()` before `</body>`
-- The template should remain free of external image export libraries
+- `copyMermaid()`, `copySVG()`, `downloadSVG()` 函数
+- 模板不得引入外部图片导出库
 
-### Component Box Pattern
+## 组件方块模板
 
 ```svg
 <rect x="X" y="Y" width="W" height="H" rx="7" fill="oklch(HUE_CHROMA / 0.12)" stroke="STROKE_OKLCH" stroke-width="1.3"/>
@@ -177,55 +200,43 @@ Keep these intact in the template:
 <text x="CX" y="Y+38" fill="oklch(0.55 0.02 260)" font-size="9" text-anchor="middle">说明文字</text>
 ```
 
-## Template
+## 箭头绕行参考
 
-Copy and customize the template at `resources/template.html`. Key customization points:
+详见 `resources/routing.js`：
 
-1. Update the `<title>` and header text (Chinese)
-2. Modify SVG viewBox dimensions
-3. Add/remove/reposition component boxes
-4. Draw connection arrows between components
-5. Update legend colors
+- **L 形:** 先垂直再水平（不同行/列的组件）
+- **U 形:** 绕障碍物走宽再折回
+- **绕障碍:** 穿过相邻组件间的窄缝
 
-## Arrow Routing Reference
+### 边界检测清单
 
-Creating complex architecture overview diagrams with multiple layers and crossing arrows requires careful coordinate planning. For reusable routing patterns, see `resources/routing.js`:
-
-- **L-shape:** Vertical then horizontal (component in different rows/columns)
-- **U-shape:** Route around an obstacle by going wide and then back in
-- **Obstacle avoidance:** Pass through narrow gaps between side-by-side components
-
-### Boundary Detection Checklist
-
-After placing all component boxes and before drawing arrows, verify:
+放置完所有组件并画箭头前，逐项确认：
 
 ```
-[ ] No two component rects overlap (check x-range vs x-range, y-range vs y-range)
-[ ] Arrow endpoints are 2px from target component edge
-[ ] Each arrow's intermediate segments avoid all component rects
-    (check every segment's y against every rect's y-range,
-     and every segment's x against every rect's x-range)
-[ ] Arrow labels do not overlap any rect
-[ ] No two arrows cross at the same point (parallel lines OK, crossing X-shape is not)
-[ ] Layer boundaries are ≥15px beyond outermost component edges
-[ ] Legend is ≥15px below lowest boundary/component
-[ ] viewBox height accommodates everything with 10-20px bottom padding
+[ ] 无组件矩形重叠
+[ ] 箭头端点距目标边缘 2px
+[ ] 箭头中间段不穿过任何组件矩形
+[ ] 箭头标签不重叠任何矩形
+[ ] 无箭头交叉（平行线可接受，X 形交叉不可）
+[ ] 层边界距最外侧组件 ≥15px
+[ ] 图例距最低元素 ≥15px
+[ ] viewBox 高度容纳全部内容，底部留 10-20px 空白
 ```
 
-### Verification Gate
+### 验收检查
 
-**Before claiming the diagram is complete, run this checklist:**
+**声称完成前，逐条执行：**
 
-1. Open the `.html` file in a browser
-2. Visually confirm: no arrows pass through boxes
-3. Visually confirm: all labels legible
-4. Run the quality checker on the HTML preview and the exported SVG
-5. Toggle the export toolbar and test Mermaid, copy SVG, and download SVG
-6. If any issue found → fix coordinates or markup and re-run from step 1
+1. 在浏览器中打开 `.html` 文件
+2. 目视确认：无箭头穿过方块
+3. 目视确认：所有标签清晰可读
+4. 运行质量检查器检查 HTML 预览和导出的 SVG
+5. 测试导出工具栏的三个按钮
+6. 发现问题 → 修复坐标或标记 → 回到步骤 1
 
-### Quality Check Workflow
+## 质量检查器
 
-Run the checker before shipping any diagram output:
+运行方式：
 
 ```bash
 python scripts/svg_quality_checker.py path/to/diagram.html
@@ -234,53 +245,41 @@ python scripts/svg_quality_checker.py --publish path/to/diagram.html
 python scripts/svg_quality_checker.py --publish path/to/diagram.svg
 ```
 
-The checker must treat these as hard errors:
+硬错误（必须通过）：
 
-- invalid SVG XML
-- missing `viewBox`
-- missing `toolbar` / `mermaid-src` in the HTML wrapper
-- missing Mermaid / SVG toolbar actions in the HTML wrapper
-- forbidden SVG elements such as `script`, `foreignObject`, or `style`
+- 无效 SVG XML
+- 缺少 `viewBox`
+- HTML 中缺少 `toolbar` / `mermaid-src`
+- HTML 中缺少 Mermaid / SVG 导出按钮
+- SVG 中包含禁止元素：`script`, `foreignObject`, `style`
 
-The checker should surface these as warnings:
+警告：
 
-- missing `role="img"`
-- missing `aria-label`
-- unusual `viewBox` formatting
-- width / height values that do not match the `viewBox`
+- 缺少 `role="img"`
+- 缺少 `aria-label`
+- `viewBox` 格式异常
+- width/height 与 `viewBox` 不匹配
 
-For final release / sharing / export, run the checker with `--publish` so any warning also fails the check. Use the non-publish mode only for iteration while you are still arranging the diagram.
-
-**Red flags — stop and verify:**
-- "Arrows look right in my head" → open the file and look
-- "The coordinates should work" → calculate, don't estimate
-- "Close enough" → overlapping arrow is a visual bug, not "close enough"
+发布前请用 `--publish` 模式（将警告视为错误）。迭代过程中可用普通模式。
 
 ## Mermaid 导出
 
-架构图和流程图都以 Mermaid 作为可编辑源定义，HTML 负责预览，SVG 负责对外分享。
+架构图和流程图都以 Mermaid 作为可编辑源定义。
 
-### 使用方式
-
-生成 HTML 后，使用工具栏复制 Mermaid 源码；需要分享或归档时，导出 SVG。
-
-### SVG → Mermaid 映射规则
+### SVG ↔ Mermaid 映射
 
 | SVG 元素 | Mermaid | 说明 |
 |---------|---------|------|
-| 入口组件 | `A([text])` | 跑道圆角，cyan 色 |
-| 核心服务 | `A[text]` | 直角矩形，emerald 色 |
-| 插件/采集器 | `A[text]` + `subgraph` | 矩形含子节点，orange 色 |
-| 存储/数据库 | `A[(text)]` | 圆柱形，violet 色 |
-| 外部 API | `A([text])` | 跑道圆角，amber 色 |
-| 层边界 | `subgraph 名称 ... end` | 对应 SVG 虚线矩形 |
-| 箭头 | `-->` / `--\|标签\|-->` | 与 SVG 箭头对应 |
-| 组件说明行 | `A[名称<br/>说明]` | `<br/>` 在 Mermaid 节点内换行 |
-| 图方向 | `flowchart TD` / `flowchart LR` | 自上而下 / 自左向右；子图内加 `direction LR` 实现层内横向排列 |
+| 入口组件 | `A([text])` | 跑道圆角 |
+| 核心服务 | `A[text]` | 直角矩形 |
+| 存储/数据库 | `A[(text)]` | 圆柱形 |
+| 外部 API | `A([text])` | 跑道圆角 |
+| 层边界 | `subgraph 名称 ... end` | 虚线矩形 |
+| 箭头 | `-->` / `--\|标签\|-->` | 连线 |
+| 说明行 | `A[名称<br/>说明]` | `<br/>` 换行 |
+| 图方向 | `flowchart TD` / `flowchart LR` | 纵向 / 横向 |
 
 ### 完整示例
-
-对一个三层架构（入口 → 核心 → 外部），Mermaid 定义如下：
 
 ```
 %%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#e8f4f8', 'primaryBorderColor': '#2b95c2', 'lineColor': '#94a3b8', 'fontFamily': 'Microsoft YaHei'}}}%%
@@ -305,26 +304,25 @@ flowchart TD
 
 ### 注意事项
 
-- Mermaid `themeVariables` 对所有节点应用同一颜色。如需多层多色（如核心层 emerald + 插件层 orange），可使用 `classDef` 为不同 `subgraph` 内的节点单独赋色
-- 复杂绕行箭头在 Mermaid 中简化为直接连线（Mermaid 自动布局处理）
-- 子组件（如采集器内的 GitHub/Gitee 等）在 Mermaid 中简化为单节点
-- 默认使用 `flowchart TD` + 子图内 `direction LR`（层间纵向、层内横向），也可整体切换为 `flowchart LR`（全横向）
-- 如果 Mermaid 自动布局导致线条交叉，优先调整子图顺序、拆分层次或加入中间汇聚节点，而不是接受交叉。
+- 多层多色可用 `classDef` 为不同子图内节点单独赋色
+- 复杂绕行箭头在 Mermaid 中简化为直接连线
+- 默认 `flowchart TD` + 子图内 `direction LR`（层间纵向、层内横向）
 
-### 自检
+### 自检清单
 
 ```
-[ ] Mermaid 定义语法正确（%%{init}%% 块闭合、括号匹配、箭头方向正确）
-[ ] 与 SVG 图内容一致（节点、层级、连接关系匹配）
-[ ] 在浏览器中预览正常，SVG 导出后仍保持清晰矢量效果
+[ ] Mermaid 语法正确
+[ ] 与 SVG 内容一致（节点、层级、连接关系）
+[ ] 浏览器预览正常，SVG 导出清晰
 [ ] `python scripts/svg_quality_checker.py path/to/diagram.html` 无错误
 [ ] `python scripts/svg_quality_checker.py path/to/diagram.svg` 无错误
 ```
 
-## Output
+## 输出规范
 
-Always produce a single self-contained `.html` file with:
-- Embedded CSS (inline styles)
-- Inline SVG (no external images)
-- Pure SVG for the diagram itself; tiny JavaScript is allowed only for the export toolbar and Mermaid copy actions
-- Export toolbar actions: Mermaid, Copy SVG, Download SVG
+始终输出自包含的单个 `.html` 文件：
+
+- 内联 CSS
+- 内联 SVG（无外部图片）
+- 纯 SVG 绘图；仅导出工具栏和 Mermaid 复制功能允许少量 JavaScript
+- 导出按钮：Mermaid · 复制 SVG · 下载 SVG
