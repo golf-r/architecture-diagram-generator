@@ -2,7 +2,7 @@
 
 **用 AI 生成专业架构图，只需要描述你的系统。**
 
-在任何支持 Skill 的 AI 编程助手中安装后，只需用自然语言描述系统架构，即可自动生成自包含的 HTML 文件，内嵌精美的 SVG 架构图。页面保持白色背景、中文界面和简洁专业的呈现效果。
+安装到任何支持 Skill 的 AI 编程助手后，只需用自然语言描述系统架构，就能自动生成自包含的 HTML 文件，内嵌精美的 SVG 架构图。页面会保持白色背景、中文界面，并呈现简洁专业的视觉效果。
 
 - **无需设计能力** —— 用中文描述你的架构即可
 - **快速迭代** —— 增删组件、调整布局、更新样式
@@ -46,19 +46,13 @@ unzip architecture-diagram.zip -d ~/.claude/skills/
 
 ## 📸 示例
 
-以下为典型示例：
-
-| 场景 | 说明 | 文件 |
-|------|------|------|
-| **Web 应用** | React 前端、Node.js API、PostgreSQL、Redis、JWT 认证 | [`examples/web-app.html`](examples/web-app.html) |
-| **AWS 无服务器** | CloudFront、API Gateway、Lambda、DynamoDB、S3、Cognito | [`examples/aws-serverless.html`](examples/aws-serverless.html) |
-| **微服务** | Kong API 网关、多语言服务、Kafka、Kubernetes 编排 | [`examples/microservices.html`](examples/microservices.html) |
+建议直接以 [architecture-diagram-overview.svg](examples/architecture-diagram-overview.svg) 作为统一示例，它整合了使用场景、使用说明和价值图，适合作为培训材料和文档入口。
 
 ---
 
 ## 📤 导出
 
-打开生成的 HTML 文件，使用顶部工具栏：
+打开生成的 HTML 文件后，使用顶部工具栏：
 
 | 按钮 | 功能 |
 |------|------|
