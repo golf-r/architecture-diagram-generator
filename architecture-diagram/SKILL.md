@@ -81,32 +81,43 @@ AI 助手读取 SPEC 文档后，识别其中的业务流转逻辑，自动生�
 - 箭头标签精简：避开角落、边界和其他标签
 - 成品应一目了然，不拥挤
 
-### 色板（OKLCH）
+### 色板
 
-使用 OKLCH 色彩空间。明度接近 0 或 100 时降低色度。避免 `#000` 或 `#fff`——所有中性色向品牌色相偏移（色度 0.005–0.01）。默认品牌色相：250°（蓝-青色）。
+> **重要：PowerPoint 兼容性**
+> SVG 中必须使用十六进制或 `rgba()` 颜色，**不得使用 `oklch()`**。PowerPoint 导入 SVG 时不支持 OKLCH 色彩空间，会导致所有形状变黑。OKLCH 仅在 HTML 页面 CSS 中用于浏览器渲染，SVG 元素一律用 hex 或 rgba。
 
-组件语义色（白色背景上）：
+组件语义色（白色背景上，SVG 中使用左侧十六进制值）：
 
-| 组件类型 | 填充 (oklch) | 描边 (oklch) |
-|---------|-------------|--------------|
-| 前端 / 入口 | `oklch(0.92 0.04 250 / 0.12)` | `oklch(0.55 0.2 250)` |
-| 后端 / 核心 | `oklch(0.92 0.035 170 / 0.12)` | `oklch(0.55 0.17 170)` |
-| 数据库 / 存储 | `oklch(0.9 0.05 300 / 0.12)` | `oklch(0.5 0.2 300)` |
-| 云服务 / 外部 API | `oklch(0.92 0.04 230 / 0.12)` | `oklch(0.55 0.18 230)` |
-| 安全 / 认证 | `oklch(0.92 0.06 20 / 0.12)` | `oklch(0.55 0.22 20)` |
-| 插件 / 消息总线 | `oklch(0.92 0.04 80 / 0.12)` | `oklch(0.55 0.18 80)` |
-| 外部 / 通用 | `oklch(0.92 0.01 260 / 0.12)` | `oklch(0.55 0.03 260)` |
+| 组件类型 | 填充（SVG 用） | 描边（SVG 用） |
+|---------|---------------|----------------|
+| 前端 / 入口 | `#eaf0fa` | `#5a82c2` |
+| 后端 / 核心 | `#e2f1ed` | `#4a9e91` |
+| 数据库 / 存储 | `#ede6f5` | `#7a62a8` |
+| 云服务 / 外部 API | `#e6edf7` | `#5a87c2` |
+| 安全 / 认证 | `#fce8e0` | `#d47a5a` |
+| 插件 / 消息总线 | `#e8f2e2` | `#72a44e` |
+| 外部 / 通用 | `#efeff1` | `#86868c` |
 
-中性色：
+虚线区域边框（SVG 中用 `rgba`）：
 
-| 元素 | OKLCH |
-|------|-------|
-| 页面背景 | `#ffffff` |
-| 卡片背景 | `#ffffff` |
-| 正文 | `oklch(0.18 0.015 260)` |
-| 辅助文字 | `oklch(0.55 0.02 260)` |
-| 边界 / 分割线 | `oklch(0.9 0.008 260)` |
-| 箭头 | `oklch(0.62 0.025 260)` |
+| 区域类型 | 边框（SVG 用） | 底色（SVG 用） |
+|---------|---------------|----------------|
+| 前端区域 | `rgba(90,130,194,0.34)` | `#f2f6fb` |
+| 后端区域 | `rgba(74,158,145,0.34)` | `#eef8f5` |
+| 数据库区域 | `rgba(122,98,168,0.34)` | `#f5f0fa` |
+| 通用区域 | `rgba(134,134,140,0.3)` | `#f4f4f5` |
+
+中性色（SVG 中用左侧十六进制值）：
+
+| 元素 | SVG 颜色 | CSS 颜色（浏览器） |
+|------|----------|-------------------|
+| 页面背景 | `#ffffff` | `#ffffff` |
+| 卡片背景 | `#ffffff` | `#ffffff` |
+| 正文 | `#2d2d33` | `#2d2d33` |
+| 辅助文字 | `#808088` | `#808088` |
+| 边界 / 分割线 | `#d8d8dc` | `#d8d8dc` |
+| 箭头 / 网格线 | `#929298` / `#e8e8ed` | `#929298` / `#e8e8ed` |
+| 白色文字 | `#ffffff` | `#ffffff` |
 
 ### 排版
 
@@ -135,20 +146,20 @@ body { background: #ffffff; }
 
 **脉冲点:** 标题栏动态指示器：
 ```css
-.pulse-dot { width: 10px; height: 10px; border-radius: 50%; background: oklch(0.55 0.2 250); animation: pulse 2.4s ease-in-out infinite; }
+.pulse-dot { width: 10px; height: 10px; border-radius: 50%; background: #5a82c2; animation: pulse 2.4s ease-in-out infinite; }
 ```
 
 **网格背景:** SVG 画布底部极浅网格线：
 ```svg
 <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
-  <path d="M 32 0 L 0 0 0 32" fill="none" stroke="oklch(0.96 0.006 250)" stroke-width="0.5"/>
+  <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#e8e8ed" stroke-width="0.5"/>
 </pattern>
 ```
 
-**层标签:** 填充圆角矩形 + 白色文字：
+**层标签:** 填充圆角矩形 + 白色文字（填充色用对应组件描边色的十六进制值）：
 ```svg
-<rect x="X" y="Y" width="84" height="20" rx="4" fill="STROKE_COLOR" />
-<text x="CX" y="Y+14" fill="oklch(1 0.005 250)" font-size="10" font-weight="600" text-anchor="middle">层名称</text>
+<rect x="X" y="Y" width="84" height="20" rx="4" fill="COMPONENT_STROKE_HEX" />
+<text x="CX" y="Y+14" fill="#ffffff" font-size="10" font-weight="600" text-anchor="middle">层名称</text>
 ```
 
 **组件方块:** 圆角矩形（`rx="6"–7`），1.3–1.5px 描边，半透明填充。
@@ -194,10 +205,12 @@ body { background: #ffffff; }
 
 ## 组件方块模板
 
+> SVG 中必须使用十六进制颜色，不得使用 `oklch()`，否则 PowerPoint 导入后颜色变黑。
+
 ```svg
-<rect x="X" y="Y" width="W" height="H" rx="7" fill="oklch(HUE_CHROMA / 0.12)" stroke="STROKE_OKLCH" stroke-width="1.3"/>
-<text x="CX" y="Y+22" fill="oklch(0.18 0.015 260)" font-size="12" font-weight="620" text-anchor="middle">NAME</text>
-<text x="CX" y="Y+38" fill="oklch(0.55 0.02 260)" font-size="9" text-anchor="middle">说明文字</text>
+<rect x="X" y="Y" width="W" height="H" rx="7" fill="FILL_HEX" stroke="STROKE_HEX" stroke-width="1.3"/>
+<text x="CX" y="Y+22" fill="#2d2d33" font-size="12" font-weight="620" text-anchor="middle">NAME</text>
+<text x="CX" y="Y+38" fill="#808088" font-size="9" text-anchor="middle">说明文字</text>
 ```
 
 ## 箭头绕行参考
@@ -232,7 +245,8 @@ body { background: #ffffff; }
 3. 目视确认：所有标签清晰可读
 4. 运行质量检查器检查 HTML 预览和导出的 SVG
 5. 测试导出工具栏的三个按钮
-6. 发现问题 → 修复坐标或标记 → 回到步骤 1
+6. 下载 SVG → 拖入 PowerPoint → 目视确认颜色正常、无全黑方块
+7. 发现问题 → 修复坐标或标记 → 回到步骤 1
 
 ## 质量检查器
 
@@ -316,6 +330,8 @@ flowchart TD
 [ ] 浏览器预览正常，SVG 导出清晰
 [ ] `python scripts/svg_quality_checker.py path/to/diagram.html` 无错误
 [ ] `python scripts/svg_quality_checker.py path/to/diagram.svg` 无错误
+[ ] SVG 中无 oklch()（用 hex 或 rgba 替代）
+[ ] PowerPoint 导入后颜色正常
 ```
 
 ## 输出规范
@@ -326,3 +342,12 @@ flowchart TD
 - 内联 SVG（无外部图片）
 - 纯 SVG 绘图；仅导出工具栏和 Mermaid 复制功能允许少量 JavaScript
 - 导出按钮：Mermaid · 复制 SVG · 下载 SVG
+
+### PowerPoint 兼容性
+
+SVG 导出后若需导入 PowerPoint，必须遵守以下规则，否则颜色会渲染为全黑：
+
+1. **SVG 内所有颜色必须使用十六进制（`#xxxxxx`）或 `rgba()`，禁止使用 `oklch()`**
+2. CSS 中的 `oklch()` 不受影响（不进入 SVG）
+3. `rgba()` 在半透明场景（虚线区域边框、箭头标签背景）下兼容 PPT 2016+
+4. 验证方式：下载 SVG → 拖入 PowerPoint → 目视确认各组件颜色与 HTML 预览一致

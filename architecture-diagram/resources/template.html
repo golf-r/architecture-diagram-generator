@@ -136,14 +136,15 @@
       <svg viewBox="0 0 1000 [HEIGHT]" role="img" aria-label="[项目名称] 架构图">
         <defs>
           <marker id="a-gray" markerWidth="8" markerHeight="5.5" refX="7" refY="2.75" orient="auto">
-            <polygon points="0 0, 8 2.75, 0 5.5" fill="oklch(0.62 0.025 260)" />
+            <polygon points="0 0, 8 2.75, 0 5.5" fill="#929298" />
           </marker>
           <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
-            <path d="M 32 0 L 0 0 0 32" fill="none" stroke="oklch(0.96 0.006 250)" stroke-width="0.5"/>
+            <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#e8e8ed" stroke-width="0.5"/>
           </pattern>
         </defs>
         <rect width="100%" height="100%" fill="#ffffff" />
         <rect width="100%" height="100%" fill="url(#grid)" />
+        <!-- ⚠️ PowerPoint 兼容性：SVG 中所有 fill / stroke 必须使用 #hex 或 rgba()，禁止使用 oklch() -->
         <!-- AI 在此写入 SVG 节点和连线 -->
       </svg>
       <!-- AI 在此填充 Mermaid 定义（用于工具栏 Mermaid 导出） -->
