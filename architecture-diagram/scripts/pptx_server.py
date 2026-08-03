@@ -9,6 +9,7 @@ Then any diagram's "导出 PPTX" button works (it calls http://localhost:8765).
 
 from __future__ import annotations
 
+import json
 import sys
 import tempfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -74,7 +75,7 @@ class Handler(BaseHTTPRequestHandler):
                 pptx_bytes = out_path.read_bytes()
             self._send(200, pptx_bytes, PPTX_CT)
         except Exception as exc:  # noqa: BLE001
-            msg = f'{{"error":"{exc}"}}'.encode("utf-8")
+            msg = json.dumps({"error": str(exc)}).encode("utf-8")
             self._send(500, msg, "application/json")
 
     def log_message(self, fmt: str, *args) -> None:
