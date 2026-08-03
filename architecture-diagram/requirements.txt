@@ -1,0 +1,5 @@
+# architecture-diagram PPTX export dependency
+# Used by scripts/export_pptx.py and scripts/pptx_server.py.
+# The quality checker (svg_quality_checker.py) stays stdlib-only.
+# Install:  pip install -r architecture-diagram/requirements.txt
+python-pptx>=0.6.21
