@@ -28,6 +28,7 @@ class SVGQualityCheckerTests(unittest.TestCase):
       <button class="toolbar-btn" onclick="copyMermaid(this)">Mermaid</button>
       <button class="toolbar-btn" onclick="copySVG(this)">复制 SVG</button>
       <button class="toolbar-btn" onclick="downloadSVG(this)">下载 SVG</button>
+      <button class="toolbar-btn" onclick="downloadPPTX(this)">导出 PPTX</button>
     </div>
     <svg viewBox="0 0 1000 600" width="1000" height="600" role="img" aria-label="架构图">
       <rect x="10" y="10" width="100" height="50" />
@@ -119,6 +120,7 @@ A-->B
       <button class="toolbar-btn" onclick="copyMermaid(this)">Mermaid</button>
       <button class="toolbar-btn" onclick="copySVG(this)">复制 SVG</button>
       <button class="toolbar-btn" onclick="downloadSVG(this)">下载 SVG</button>
+      <button class="toolbar-btn" onclick="downloadPPTX(this)">导出 PPTX</button>
     </div>
     <svg viewBox="0 0 1000 600" width="1000" height="600" role="img" aria-label="架构图">
       <text x="120" y="120">Gamma</text>
@@ -134,6 +136,34 @@ A[Alpha] --> B[Beta]
 
         self.assertTrue(result["passed"])
         self.assertTrue(any("mermaid" in warning.lower() for warning in result["warnings"]))
+
+    def test_html_missing_pptx_button_fails(self):
+        module = load_checker_module()
+        checker = module.SVGQualityChecker()
+
+        html = """<!DOCTYPE html>
+<html lang="zh-CN">
+<body>
+  <div class="container" id="report-container">
+    <div class="toolbar">
+      <button class="toolbar-btn" onclick="copyMermaid(this)">Mermaid</button>
+      <button class="toolbar-btn" onclick="copySVG(this)">复制 SVG</button>
+      <button class="toolbar-btn" onclick="downloadSVG(this)">下载 SVG</button>
+    </div>
+    <svg viewBox="0 0 1000 600" width="1000" height="600" role="img" aria-label="架构图">
+      <rect x="10" y="10" width="100" height="50" />
+    </svg>
+    <pre class="mermaid-src" style="display:none">flowchart TD
+A-->B
+</pre>
+  </div>
+</body>
+</html>"""
+
+        result = checker.check_html_content(html, source_path=Path("diagram.html"))
+
+        self.assertFalse(result["passed"])
+        self.assertTrue(any("PPTX" in error for error in result["errors"]))
 
     def test_arrow_endpoint_distance_warns(self):
         module = load_checker_module()

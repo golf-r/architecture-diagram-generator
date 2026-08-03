@@ -52,6 +52,8 @@ class SVGQualityChecker:
             result.errors.append("Missing Mermaid copy action")
         if "复制 SVG" not in html or "downloadSVG(" not in html:
             result.errors.append("Missing SVG copy/download actions")
+        if "导出 PPTX" not in html or "downloadPPTX(" not in html:
+            result.errors.append("Missing PPTX export action")
         if 'class="mermaid-src"' not in html and "class='mermaid-src'" not in html:
             result.errors.append("Missing hidden Mermaid source block")
 
