@@ -188,20 +188,63 @@ body { background: #ffffff; }
 
 ## 导出工具栏
 
-每个 HTML 自带三个按钮：
+每个 HTML 自带四个按钮：
 
 | 按钮 | 功能 |
 |------|------|
 | Mermaid | 复制 Mermaid 源码到剪贴板 |
 | 复制 SVG | 复制 SVG XML 到剪贴板 |
 | 下载 SVG | 下载 .svg 文件 |
+| 导出 PPTX | 经本地服务转为原生可编辑 .pptx（需先启动服务，见下） |
 
 模板中必须保留的元素：
 - `id="report-container"` 在 `.container` 上
-- `.toolbar` + `.toolbar-btn` 按钮
+- `.toolbar` + `.toolbar-btn` 按钮（含 `downloadPPTX`）
 - `@media print { .toolbar { display: none !important; } }`
-- `copyMermaid()`, `copySVG()`, `downloadSVG()` 函数
+- `copyMermaid()`, `copySVG()`, `downloadSVG()`, `downloadPPTX()` 函数
 - 模板不得引入外部图片导出库
+
+## PPTX 导出（原生可编辑形状）
+
+「导出 PPTX」按钮把当前 SVG 转成 **PowerPoint 原生形状**的 `.pptx`：圆角矩形、虚线边框、箭头都作为可编辑形状保留（PowerPoint 自带的「导入 SVG → 转换为形状」会丢圆角和虚线，不要走那条路）。
+
+### 工作方式
+
+浏览器无法直接运行 Python 转换器，因此通过一个本地小服务桥接：
+
+1. 一次性启动本地服务（常驻）：
+   ```bash
+   pip install -r architecture-diagram/requirements.txt   # 仅首次，装 python-pptx
+   python architecture-diagram/scripts/pptx_server.py
+   ```
+   服务监听 `http://localhost:8765`。
+2. 在浏览器中打开任意生成的 `.html`，点「导出 PPTX」→ 下载 `diagram.pptx`。
+3. 服务没启动时按钮回显「✗ 先起服务」；未装 python-pptx 时回显「✗ 装依赖」。
+
+也可以用 CLI 直接转单文件：
+```bash
+python architecture-diagram/scripts/export_pptx.py diagram.svg -o diagram.pptx
+```
+
+### 保真映射
+
+| SVG | PPTX 原生形状 |
+|-----|---------------|
+| `<rect rx>` | `roundRect`（带可拖拽圆角手柄） |
+| `stroke-dasharray` | `prstDash` / `custDash`（虚线保留） |
+| `<marker>` 箭头 | `tailEnd type="triangle"` |
+| `#hex` 颜色 | `srgbClr` |
+| `opacity`/`fill-opacity`/`stroke-opacity` | `alpha` |
+
+### 已知限制
+
+- **`rgba()` 颜色不解析**：转换器只认 `#hex`，使用 `rgba()` 的元素在 PPTX 中会失去填充/描边。SVG 配色请优先用 `#hex`（半透明用 `#hex` + `stroke-opacity`/`fill-opacity`，或预计算浅色 hex）。示例 SVG 已全程用 hex。
+- 网格底纹 `<pattern>` 在 PPTX 中不渲染（装饰性，可接受）。
+- 不含动画、旁白、笔记、图片媒体。
+
+### 验证
+
+下载 PPTX → 在 PowerPoint 打开 → 确认：圆角在、虚线在、箭头在、颜色一致、文字可读、每个形状可单独选中编辑。
 
 ## 组件方块模板
 
@@ -244,9 +287,10 @@ body { background: #ffffff; }
 2. 目视确认：无箭头穿过方块
 3. 目视确认：所有标签清晰可读
 4. 运行质量检查器检查 HTML 预览和导出的 SVG
-5. 测试导出工具栏的三个按钮
+5. 测试导出工具栏的四个按钮
 6. 下载 SVG → 拖入 PowerPoint → 目视确认颜色正常、无全黑方块
 7. 发现问题 → 修复坐标或标记 → 回到步骤 1
+8. （可选）启动 `pptx_server.py` 后点「导出 PPTX」→ 在 PowerPoint 打开 → 确认圆角、虚线、箭头保留且形状可编辑
 
 ## 质量检查器
 
@@ -351,3 +395,6 @@ SVG 导出后若需导入 PowerPoint，必须遵守以下规则，否则颜色�
 2. CSS 中的 `oklch()` 不受影响（不进入 SVG）
 3. `rgba()` 在半透明场景（虚线区域边框、箭头标签背景）下兼容 PPT 2016+
 4. 验证方式：下载 SVG → 拖入 PowerPoint → 目视确认各组件颜色与 HTML 预览一致
+
+> **要可编辑形状（圆角/虚线/箭头原生保留）**：用「导出 PPTX」按钮或 `export_pptx.py` 生成原生 PPTX（见「PPTX 导出」小节）。
+> **SVG 导入 PowerPoint + 转换为形状** 是有损的，仅适用于网页预览或作为图片使用。
