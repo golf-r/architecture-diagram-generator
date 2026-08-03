@@ -14,12 +14,18 @@ description: Use when creating architecture overview diagrams or flowcharts that
 ```
 architecture-diagram/
 ├── SKILL.md                      # 本说明文档
+├── requirements.txt              # PPTX 导出依赖（python-pptx）
 ├── resources/
 │   ├── template.html             # 输出模板（核心文件）
 │   └── routing.js                # 箭头绕行参考
 ├── scripts/
-│   └── svg_quality_checker.py    # 质量检查工具
+│   ├── export_pptx.py            # SVG/HTML -> 原生 PPTX 转换
+│   ├── pptx_server.py            # 本地服务，供浏览器「导出 PPTX」调用
+│   ├── svg_quality_checker.py    # 质量检查工具
+│   └── svg_to_pptx/              # vendored 转换器核心（from ppt-master）
 └── tests/
+    ├── test_export_pptx.py
+    ├── test_pptx_server.py
     └── test_svg_quality_checker.py
 ```
 
@@ -308,7 +314,7 @@ python scripts/svg_quality_checker.py --publish path/to/diagram.svg
 - 无效 SVG XML
 - 缺少 `viewBox`
 - HTML 中缺少 `toolbar` / `mermaid-src`
-- HTML 中缺少 Mermaid / SVG 导出按钮
+- HTML 中缺少任一导出按钮（Mermaid / SVG / PPTX）
 - SVG 中包含禁止元素：`script`, `foreignObject`, `style`
 
 警告：
@@ -385,7 +391,7 @@ flowchart TD
 - 内联 CSS
 - 内联 SVG（无外部图片）
 - 纯 SVG 绘图；仅导出工具栏和 Mermaid 复制功能允许少量 JavaScript
-- 导出按钮：Mermaid · 复制 SVG · 下载 SVG
+- 导出按钮：Mermaid · 复制 SVG · 下载 SVG · 导出 PPTX
 
 ### PowerPoint 兼容性
 
