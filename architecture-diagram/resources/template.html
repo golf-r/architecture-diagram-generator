@@ -128,6 +128,8 @@
         <div class="toolbar-divider"></div>
         <button class="toolbar-btn" onclick="copySVG(this)">复制 SVG</button>
         <button class="toolbar-btn" onclick="downloadSVG(this)">下载 SVG</button>
+        <div class="toolbar-divider"></div>
+        <button class="toolbar-btn" onclick="downloadPPTX(this)">导出 PPTX</button>
       </div>
     </div>
     <p class="subtitle">[项目简介 · 关键特性 · 技术栈]</p>
@@ -189,6 +191,36 @@
         btn.textContent = '✗ 失败';
       }
       setTimeout(function() { btn.textContent = orig; }, 2000);
+    }
+
+    async function downloadPPTX(btn) {
+      const orig = btn.textContent;
+      const SERVER = 'http://localhost:8765';
+      let msg = '✗ 失败';
+      try {
+        const health = await fetch(SERVER + '/health');
+        if (!health.ok) throw 0;
+        const hj = await health.json();
+        if (!hj.ok) { msg = '✗ 装依赖'; throw 0; }
+        const resp = await fetch(SERVER + '/export', {
+          method: 'POST',
+          headers: { 'Content-Type': 'image/svg+xml;charset=utf-8' },
+          body: serializeSvg()
+        });
+        if (!resp.ok) throw 0;
+        const blob = await resp.blob();
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'diagram.pptx';
+        link.click();
+        URL.revokeObjectURL(url);
+        msg = '✓ 完成';
+      } catch (e) {
+        if (msg === '✗ 失败') msg = '✗ 先起服务';
+      }
+      btn.textContent = msg;
+      setTimeout(function() { btn.textContent = orig; }, 2500);
     }
 
     async function copyMermaid(btn) {
