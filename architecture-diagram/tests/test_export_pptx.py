@@ -1,4 +1,6 @@
+import contextlib
 import importlib.util
+import io
 import tempfile
 import unittest
 import zipfile
@@ -45,6 +47,34 @@ class ExportPptxTests(unittest.TestCase):
         out = module._preprocess_svg(svg, 1080, 760)
         self.assertNotIn("100%", out)
         self.assertIn('width="1080"', out)
+
+    def test_main_html_input_produces_pptx(self):
+        module = load_export_module()
+        svg = ('<svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">'
+               '<rect x="10" y="10" width="50" height="30" rx="4" fill="#eaf0fa" '
+               'stroke="#5a82c2"/></svg>')
+        html = f"<!DOCTYPE html><html><body>{svg}</body></html>"
+        with tempfile.TemporaryDirectory() as tmp:
+            html_path = Path(tmp) / "in.html"
+            html_path.write_text(html, encoding="utf-8")
+            out = Path(tmp) / "out.pptx"
+            rc = module.main([str(html_path), "-o", str(out)])
+            self.assertEqual(rc, 0)
+            self.assertTrue(out.exists() and out.stat().st_size > 0)
+
+    def test_main_html_without_svg_returns_error(self):
+        module = load_export_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            html_path = Path(tmp) / "bad.html"
+            html_path.write_text("<!DOCTYPE html><html><body>no svg here</body></html>",
+                                 encoding="utf-8")
+            out = Path(tmp) / "out.pptx"
+            err = io.StringIO()
+            with contextlib.redirect_stderr(err):
+                rc = module.main([str(html_path), "-o", str(out)])
+            self.assertEqual(rc, 1)
+            self.assertIn("ERROR", err.getvalue())
+            self.assertFalse(out.exists())
 
 
 if __name__ == "__main__":

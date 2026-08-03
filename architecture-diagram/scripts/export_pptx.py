@@ -6,7 +6,7 @@ element becomes a native DrawingML shape, so rounded corners, dashed
 borders and arrowheads survive as editable PowerPoint shapes.
 (PowerPoint's own SVG-import -> convert-to-shape path drops them.)
 
-Requires python-pptx:  pip install -r requirements.txt
+Requires python-pptx:  pip install -r architecture-diagram/requirements.txt
 """
 
 from __future__ import annotations
@@ -48,8 +48,8 @@ def _preprocess_svg(svg_text: str, w: float, h: float) -> str:
     full-canvas background rects) would crash it. The grid <pattern> fill
     is left as-is (renders empty in PPTX - decorative, acceptable loss).
     """
-    svg_text = re.sub(r'\bwidth\s*=\s*"100%"', f'width="{w:g}"', svg_text)
-    svg_text = re.sub(r'\bheight\s*=\s*"100%"', f'height="{h:g}"', svg_text)
+    svg_text = re.sub(r'(?<![-\w])width\s*=\s*"100%"', f'width="{w:g}"', svg_text)
+    svg_text = re.sub(r'(?<![-\w])height\s*=\s*"100%"', f'height="{h:g}"', svg_text)
     return svg_text
 
 
@@ -119,7 +119,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         import pptx  # noqa: F401
     except ImportError:
-        print("ERROR: python-pptx is not installed. Run: pip install -r requirements.txt",
+        print("ERROR: python-pptx is not installed. Run: pip install -r architecture-diagram/requirements.txt",
               file=sys.stderr)
         return 2
 
@@ -128,17 +128,17 @@ def main(argv: list[str] | None = None) -> int:
         print(f"ERROR: input not found: {in_path}", file=sys.stderr)
         return 1
 
-    if in_path.suffix.lower() in (".html", ".htm"):
-        svg_text = _extract_svg_from_html(in_path.read_text(encoding="utf-8"))
-        tmp_dir = Path(tempfile.mkdtemp())
-        svg_path = tmp_dir / "extracted.svg"
-        svg_path.write_text(svg_text, encoding="utf-8")
-    else:
-        svg_path = in_path
-
     out_path = Path(args.output) if args.output else in_path.with_suffix(".pptx")
+
     try:
-        convert_svg_to_pptx(svg_path, out_path, verbose=args.verbose)
+        if in_path.suffix.lower() in (".html", ".htm"):
+            svg_text = _extract_svg_from_html(in_path.read_text(encoding="utf-8"))
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                svg_path = Path(tmp_dir) / "extracted.svg"
+                svg_path.write_text(svg_text, encoding="utf-8")
+                convert_svg_to_pptx(svg_path, out_path, verbose=args.verbose)
+        else:
+            convert_svg_to_pptx(in_path, out_path, verbose=args.verbose)
     except Exception as exc:  # noqa: BLE001
         print(f"ERROR: conversion failed: {exc}", file=sys.stderr)
         return 1
