@@ -1,6 +1,7 @@
 import http.client
 import importlib.util
 import io
+import socket
 import tempfile
 import threading
 import unittest
@@ -60,6 +61,29 @@ class PptxServerTests(unittest.TestCase):
         self.assertEqual(data[:2], b"PK", "response is not a zip")
         with zipfile.ZipFile(io.BytesIO(data)) as zf:
             self.assertIn("ppt/slides/slide1.xml", zf.namelist())
+
+    def test_find_free_port_skips_occupied(self):
+        module = self.module
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.bind(("127.0.0.1", 0))
+        occ = s.getsockname()[1]
+        s.listen(1)
+        try:
+            p = module.find_free_port(occ, count=10)
+            self.assertIsNotNone(p)
+            self.assertNotEqual(p, occ)
+        finally:
+            s.close()
+
+    def test_server_already_running_detects_our_server(self):
+        module = self.module
+        self.assertTrue(module.server_already_running(self.port))
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.bind(("127.0.0.1", 0))
+        free = s.getsockname()[1]
+        s.close()
+        self.assertFalse(module.server_already_running(free))
 
 
 if __name__ == "__main__":

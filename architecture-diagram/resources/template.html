@@ -193,9 +193,12 @@
       setTimeout(function() { btn.textContent = orig; }, 2000);
     }
 
+    // PPTX 导出服务地址。AI 生成图并启动 pptx_server 后，若服务跑在非默认端口，
+    // 把下面这行改成实际地址（如 'http://localhost:8766'）；默认 8765 时留空即可。
+    var PPTX_SERVER_URL = '';
     async function downloadPPTX(btn) {
       const orig = btn.textContent;
-      const SERVER = 'http://localhost:8765';
+      const SERVER = PPTX_SERVER_URL || 'http://localhost:8765';
       let msg = '✗ 失败';
       try {
         const health = await fetch(SERVER + '/health');

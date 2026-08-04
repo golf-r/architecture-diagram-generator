@@ -216,16 +216,20 @@ body { background: #ffffff; }
 
 ### 工作方式
 
-浏览器无法直接运行 Python 转换器，因此通过一个本地小服务桥接：
+浏览器无法直接运行 Python 转换器，通过本地小服务桥接。**生成 HTML 后，AI 默认自动后台启动该服务**，用户无需手动起服务即可点「导出 PPTX」。
 
-1. 一次性启动本地服务（常驻）：
+AI 生成图后的标准动作：
+
+1. 后台启动服务（自动复用已在跑的实例；若默认端口 8765 被占，自动选下一个空闲端口）：
    ```bash
    pip install -r architecture-diagram/requirements.txt   # 仅首次，装 python-pptx
    python architecture-diagram/scripts/pptx_server.py
    ```
-   服务监听 `http://localhost:8765`。
-2. 在浏览器中打开任意生成的 `.html`，点「导出 PPTX」→ 下载 `diagram.pptx`。
-3. 服务没启动时按钮回显「✗ 先起服务」；未装 python-pptx 时回显「✗ 装依赖」。
+   启动后输出 `PPTX_EXPORT_PORT=<端口>`（默认 8765 时也是这个值）。
+2. 把实际端口写入生成的 HTML：将 `PPTX_SERVER_URL` 设为 `http://localhost:<端口>`（端口为 8765 时可留空）。
+3. 告知用户：在浏览器打开 `.html`，点「导出 PPTX」→ 下载可编辑 `diagram.pptx`。
+
+> 用户也可手动启动：`python architecture-diagram/scripts/pptx_server.py`（支持 `--port <n>` 或环境变量 `PPTX_PORT`；自动复用已在跑的实例、避开被占端口）。服务没起时按钮回显「✗ 先起服务」；未装 python-pptx 时回显「✗ 装依赖」。
 
 也可以用 CLI 直接转单文件：
 ```bash
